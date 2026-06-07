@@ -6,3 +6,12 @@ export const GITHUB_RELEASES_URL =
 export const GITHUB_WIKI_URL = "https://github.com/emiliosheinz/loci/wiki";
 export const GITHUB_CONTRIBUTING_URL =
   "https://github.com/emiliosheinz/loci?tab=contributing-ov-file#contributing-to-loci";
+
+export const ROUTES = {
+  home: "/",
+  signIn: "/auth/sign-in",
+  signUp: "/auth/sign-up",
+  verifyEmail: "/auth/verify-email",
+  admin: "/admin",
+  client: "/client",
+} as const;

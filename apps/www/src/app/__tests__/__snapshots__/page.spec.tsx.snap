@@ -59,6 +59,12 @@ exports[`Home Page renders successfully 1`] = `
         <div
           class="flex items-center gap-2"
         >
+          <a
+            class="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            href="/auth/sign-in"
+          >
+            Sign in
+          </a>
           <button
             aria-expanded="false"
             aria-haspopup="menu"
@@ -67,7 +73,7 @@ exports[`Home Page renders successfully 1`] = `
             data-slot="button"
             data-state="closed"
             data-testid="theme-toggle"
-            id="radix-«r0»"
+            id="radix-_r_0_"
             type="button"
           >
             <svg
@@ -1246,7 +1252,7 @@ exports[`Home Page renders successfully 1`] = `
             class="text-sm text-muted-foreground"
           >
             © 
-            2025
+            2026
              Loci. All rights reserved.
           </p>
           <div
