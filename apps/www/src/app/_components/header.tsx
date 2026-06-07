@@ -43,6 +43,12 @@ export function Header() {
           </a>
         </nav>
         <div className="flex items-center gap-2">
+          <a
+            href="/auth/sign-in"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Sign in
+          </a>
           <ThemeSwitcher />
         </div>
       </div>
