@@ -2,6 +2,7 @@ import { BadGatewayException, Injectable, Logger } from "@nestjs/common";
 import { type FlexibeeConfig, loadFlexibeeConfig } from "./flexibee.config";
 
 const REQUEST_TIMEOUT_MS = 5_000;
+const USER_AGENT = "loci-api/0.1.4";
 
 type FlexibeeRow = Record<string, unknown>;
 
@@ -33,6 +34,8 @@ export class FlexibeeClient {
         headers: {
           Accept: "application/json",
           Authorization: `Basic ${credentials}`,
+          // The public Flexibee demo rejects Node's default `node` User-Agent with 403.
+          "User-Agent": USER_AGENT,
         },
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
