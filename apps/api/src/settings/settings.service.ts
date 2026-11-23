@@ -1,6 +1,10 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { dirname } from "node:path";
-import { Injectable } from "@nestjs/common";
+import {
+  Inject,
+  Injectable,
+  ServiceUnavailableException,
+} from "@nestjs/common";
+import type { Pool } from "pg";
+import { DATABASE_POOL } from "../database/database.module";
 
 export type AppSettings = {
   /** Flexibee `sklad` id whose stock is shown. `null` = use the global stock. */
@@ -9,38 +13,67 @@ export type AppSettings = {
 
 export const DEFAULT_SETTINGS: AppSettings = { warehouseId: null };
 
-const DEFAULT_SETTINGS_FILE = "data/settings.json";
+const SETTINGS_KEY = "app";
 
 /**
- * Persists admin-editable settings as a small JSON file. The path comes from
- * `SETTINGS_FILE`; mount it on a persistent volume in production.
+ * Admin-editable settings stored in Postgres (`app_settings`, one row per key).
+ * The table is created on first use.
  */
 @Injectable()
 export class SettingsService {
+  private schemaReady: Promise<void> | null = null;
+
+  constructor(@Inject(DATABASE_POOL) private readonly pool: Pool) {}
+
   async get(): Promise<AppSettings> {
-    try {
-      const raw = await readFile(settingsFilePath(), "utf8");
-      return normalize(JSON.parse(raw));
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-        return { ...DEFAULT_SETTINGS };
-      }
-      throw error;
-    }
+    await this.ensureSchema();
+
+    const result = await this.pool.query<{ value: unknown }>(
+      "SELECT value FROM app_settings WHERE key = $1",
+      [SETTINGS_KEY],
+    );
+
+    return normalize(result.rows[0]?.value);
   }
 
   async update(patch: Partial<AppSettings>): Promise<AppSettings> {
+    await this.ensureSchema();
+
     const next = normalize({ ...(await this.get()), ...patch });
-    await writeAtomically(
-      settingsFilePath(),
-      `${JSON.stringify(next, null, 2)}\n`,
+
+    await this.pool.query(
+      `INSERT INTO app_settings (key, value, updated_at)
+       VALUES ($1, $2::jsonb, now())
+       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`,
+      [SETTINGS_KEY, JSON.stringify(next)],
     );
+
     return next;
   }
-}
 
-const settingsFilePath = (): string =>
-  process.env.SETTINGS_FILE ?? DEFAULT_SETTINGS_FILE;
+  private ensureSchema(): Promise<void> {
+    if (!process.env.DATABASE_URL) {
+      throw new ServiceUnavailableException("Database is not configured");
+    }
+
+    this.schemaReady ??= this.pool
+      .query(
+        `CREATE TABLE IF NOT EXISTS app_settings (
+           key text PRIMARY KEY,
+           value jsonb NOT NULL,
+           updated_at timestamptz NOT NULL DEFAULT now()
+         )`,
+      )
+      .then(() => undefined)
+      .catch((error: unknown) => {
+        // Allow a retry on the next request if the database was unreachable.
+        this.schemaReady = null;
+        throw error;
+      });
+
+    return this.schemaReady;
+  }
+}
 
 const normalize = (value: unknown): AppSettings => {
   const source = (value ?? {}) as Partial<Record<keyof AppSettings, unknown>>;
@@ -50,14 +83,4 @@ const normalize = (value: unknown): AppSettings => {
       : null;
 
   return { warehouseId };
-};
-
-const writeAtomically = async (
-  path: string,
-  content: string,
-): Promise<void> => {
-  await mkdir(dirname(path), { recursive: true });
-  const tempPath = `${path}.tmp`;
-  await writeFile(tempPath, content, "utf8");
-  await rename(tempPath, path);
 };

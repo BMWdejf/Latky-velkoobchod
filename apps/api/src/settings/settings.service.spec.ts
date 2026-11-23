@@ -1,45 +1,70 @@
-import { mkdtemp, readFile, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import type { Pool } from "pg";
 import { SettingsService } from "./settings.service";
 
-describe("SettingsService", () => {
-  let dir: string;
+describe("SettingsService (Postgres)", () => {
+  const originalUrl = process.env.DATABASE_URL;
+  let query: jest.Mock;
   let service: SettingsService;
 
-  beforeEach(async () => {
-    dir = await mkdtemp(join(tmpdir(), "settings-"));
-    process.env.SETTINGS_FILE = join(dir, "nested", "settings.json");
-    service = new SettingsService();
+  beforeEach(() => {
+    process.env.DATABASE_URL = "postgresql://test";
+    query = jest.fn().mockResolvedValue({ rows: [] });
+    service = new SettingsService({ query } as unknown as Pool);
   });
 
-  afterEach(async () => {
-    delete process.env.SETTINGS_FILE;
-    await rm(dir, { recursive: true, force: true });
+  afterEach(() => {
+    if (originalUrl === undefined) {
+      delete process.env.DATABASE_URL;
+    } else {
+      process.env.DATABASE_URL = originalUrl;
+    }
   });
 
-  it("returns the global stock default when no file exists", async () => {
+  it("returns the global stock default when no row exists", async () => {
     await expect(service.get()).resolves.toEqual({ warehouseId: null });
   });
 
-  it("persists the warehouse id and creates missing directories", async () => {
-    await service.update({ warehouseId: "7" });
+  it("creates the table on first use", async () => {
+    await service.get();
 
-    await expect(service.get()).resolves.toEqual({ warehouseId: "7" });
-    const raw = await readFile(process.env.SETTINGS_FILE as string, "utf8");
-    expect(JSON.parse(raw)).toEqual({ warehouseId: "7" });
+    expect(query.mock.calls[0]?.[0]).toMatch(
+      /CREATE TABLE IF NOT EXISTS app_settings/,
+    );
+  });
+
+  it("upserts the warehouse id", async () => {
+    query.mockImplementation(async (sql: string) =>
+      sql.startsWith("SELECT")
+        ? { rows: [{ value: { warehouseId: "7" } }] }
+        : { rows: [] },
+    );
+
+    await expect(service.update({ warehouseId: "9" })).resolves.toEqual({
+      warehouseId: "9",
+    });
+
+    const upsert = query.mock.calls.find(([sql]) =>
+      String(sql).startsWith("INSERT"),
+    );
+    expect(upsert?.[1]).toEqual(["app", JSON.stringify({ warehouseId: "9" })]);
   });
 
   it("clears the warehouse when set to null", async () => {
-    await service.update({ warehouseId: "7" });
-    await service.update({ warehouseId: null });
+    await expect(service.update({ warehouseId: null })).resolves.toEqual({
+      warehouseId: null,
+    });
+  });
+
+  it("treats a blank stored warehouse id as unset", async () => {
+    query.mockResolvedValue({ rows: [{ value: { warehouseId: "   " } }] });
 
     await expect(service.get()).resolves.toEqual({ warehouseId: null });
   });
 
-  it("treats a corrupted or blank warehouse id as unset", async () => {
-    await service.update({ warehouseId: "   " });
+  it("fails clearly when DATABASE_URL is missing", async () => {
+    delete process.env.DATABASE_URL;
 
-    await expect(service.get()).resolves.toEqual({ warehouseId: null });
+    await expect(service.get()).rejects.toThrow("Database is not configured");
+    expect(query).not.toHaveBeenCalled();
   });
 });
