@@ -1,112 +1,50 @@
 import { expect, test } from "@playwright/test";
 
-const navigationLinks = [
-  { name: "Problem", hash: "#problem" },
-  { name: "Features", hash: "#features" },
-  { name: "Open Source", hash: "#open-source" },
-];
-
-const externalLinks = [
-  { label: "View on GitHub", href: "https://github.com/emiliosheinz/loci" },
-  { label: "Documentation", href: "https://github.com/emiliosheinz/loci" },
-  {
-    label: "Roadmap",
-    href: "https://github.com/users/emiliosheinz/projects/3",
-  },
-  { label: "Changelog", href: "https://github.com/emiliosheinz/loci/releases" },
-  { label: "Wiki", href: "https://github.com/emiliosheinz/loci/wiki" },
-  {
-    label: "Contribute on GitHub",
-    href: "https://github.com/emiliosheinz/loci?tab=contributing-ov-file#contributing-to-loci",
-  },
-];
-
 test.describe("Home Page", () => {
-  test("loads and renders key sections", async ({ page }) => {
+  test("renders the header, hero, value propositions and footer", async ({
+    page,
+  }) => {
     await page.goto("/");
 
     await test.step("renders header and hero", async () => {
       await expect(page.locator("header")).toBeVisible();
       await expect(
-        page.getByRole("heading", { name: "Capture anything, in any moment" }),
+        page.getByRole("heading", {
+          name: "Velkoobchodní dodávky prémiových textilií & ložního prádla",
+        }),
       ).toBeVisible();
     });
 
-    await test.step("renders all content sections and footer", async () => {
-      await expect(page.locator("#problem")).toBeVisible();
-      await expect(page.locator("#features")).toBeVisible();
-      await expect(page.locator("#open-source")).toBeVisible();
+    await test.step("renders value propositions and catalog", async () => {
+      await expect(
+        page.getByRole("region", { name: "Výhody pro velkoobchod" }),
+      ).toBeVisible();
+      await expect(page.locator("#katalog")).toBeVisible();
+    });
+
+    await test.step("renders footer", async () => {
       await expect(page.locator("footer")).toBeVisible();
     });
   });
 
-  test("toggles theme", async ({ page }) => {
+  test("shows the product catalog or an error state", async ({ page }) => {
     await page.goto("/");
 
-    const themeToggleButton = page.getByTestId("theme-toggle");
+    const catalog = page.locator("#katalog");
+    const cards = catalog.getByRole("article");
+    const status = catalog.getByRole("status");
 
-    await test.step("opens the theme menu", async () => {
-      await expect(themeToggleButton).toBeVisible();
-      await themeToggleButton.click();
-      await expect(page.getByTestId("theme-light")).toBeVisible();
-      await expect(page.getByTestId("theme-dark")).toBeVisible();
-    });
-
-    await test.step("switches to dark theme", async () => {
-      await page.getByTestId("theme-dark").click();
-      await expect(page.locator("html")).toHaveClass(/dark/);
-    });
-
-    await page.waitForTimeout(300); // wait for the transition to complete
-
-    await test.step("opens the theme menu", async () => {
-      await expect(themeToggleButton).toBeVisible();
-      await themeToggleButton.click();
-      await expect(page.getByTestId("theme-dark")).toBeVisible();
-      await expect(page.getByTestId("theme-light")).toBeVisible();
-    });
-
-    await test.step("switches back to light theme", async () => {
-      await page.getByTestId("theme-light").click();
-      await expect(page.locator("html")).not.toHaveClass(/dark/);
-    });
+    await expect(cards.first().or(status)).toBeVisible();
   });
 
-  test.describe("Internal navigation", () => {
-    test.beforeAll(() => {
-      const isMobile = test.info().project.use.isMobile;
+  test("links the category navigation to the catalog", async ({ page }) => {
+    await page.goto("/");
 
-      if (isMobile) {
-        test.skip(true, "Internal header navigation is hidden on mobile");
-      }
+    const navigation = page.getByRole("navigation", {
+      name: "Hlavní navigace",
     });
-
-    for (const link of navigationLinks) {
-      test(`navigates to ${link.name} section`, async ({ page }) => {
-        await page.goto("/");
-        page.getByRole("link", { name: link.name }).click();
-        await expect(page).toHaveURL(new RegExp(`${link.hash}$`));
-        await expect(page.locator(link.hash)).toBeInViewport();
-      });
-    }
-  });
-
-  test.describe("External navigation", () => {
-    for (const link of externalLinks) {
-      test(`has correct href for ${link.label}`, async ({ page }) => {
-        await page.goto("/");
-        const externalLink = page.getByRole("link", { name: link.label });
-        await expect(externalLink).toHaveAttribute("href", link.href);
-      });
-    }
-
-    test("has correct href for footer GitHub icon link", async ({ page }) => {
-      await page.goto("/");
-      const footerGitHubLink = page.getByRole("link", { name: "GitHub" });
-      await expect(footerGitHubLink.first()).toHaveAttribute(
-        "href",
-        "https://github.com/emiliosheinz/loci",
-      );
-    });
+    await expect(
+      navigation.getByRole("link", { name: "Látky – metráž" }),
+    ).toHaveAttribute("href", "#katalog");
   });
 });

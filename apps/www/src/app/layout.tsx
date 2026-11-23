@@ -1,22 +1,22 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono as GeistMono } from "next/font/google";
+import { Newsreader, Plus_Jakarta_Sans } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-switcher";
 
-const geist = Geist({
-  subsets: ["latin"],
-  variable: "--font-geist-sans",
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-plus-jakarta",
   display: "swap",
 });
-const geistMono = GeistMono({
-  subsets: ["latin"],
-  variable: "--font-geist-mono",
+const newsreader = Newsreader({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-newsreader",
   display: "swap",
 });
 
-const title = "Loci";
+const title = "Látky Velkoobchod";
 const description =
-  "A simple, frictionless app to capture anything in the moment";
+  "Velkoobchodní dodávky prémiových textilií a ložního prádla z centrálního skladu v Praze";
 
 export const metadata: Metadata = {
   title,
@@ -26,8 +26,8 @@ export const metadata: Metadata = {
     title,
     type: "website",
     siteName: title,
-    locale: "en-US",
-    description: description,
+    locale: "cs-CZ",
+    description,
     images: "/og-banner.png",
   },
   robots: {
@@ -52,14 +52,15 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="cs"
       suppressHydrationWarning
-      className={`${geist.variable} ${geistMono.variable}`}
+      className={`${plusJakarta.variable} ${newsreader.variable}`}
     >
       <body className="font-sans antialiased">
         <ThemeProvider
-          attribute={["class", "data-theme"]}
-          defaultTheme="system"
+          attribute="class"
+          forcedTheme="light"
+          defaultTheme="light"
         >
           {children}
         </ThemeProvider>

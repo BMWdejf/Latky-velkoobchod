@@ -1,19 +1,19 @@
-import { Features } from "./_components/features";
-import { Footer } from "./_components/footer";
-import { Header } from "./_components/header";
 import { Hero } from "./_components/hero";
-import { OpenSource } from "./_components/open-source";
-import { Problems } from "./_components/problems";
+import { ProductCatalog } from "./_components/product-catalog";
+import { SiteFooter } from "./_components/site-footer";
+import { SiteHeader } from "./_components/site-header";
+import { ValuePropsBar } from "./_components/value-props-bar";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Header />
-      <Hero />
-      <Problems />
-      <Features />
-      <OpenSource />
-      <Footer />
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <SiteHeader />
+      <main className="flex flex-1 flex-col">
+        <Hero />
+        <ValuePropsBar />
+        <ProductCatalog />
+      </main>
+      <SiteFooter />
     </div>
   );
 }

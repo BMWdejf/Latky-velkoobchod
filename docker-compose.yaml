@@ -51,6 +51,8 @@ services:
     depends_on:
       setup:
         condition: service_completed_successfully
+      api:
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://$${HOSTNAME}:$${PORT}/health || exit 1"]
       start_period: 10s
