@@ -5,9 +5,13 @@ import {
   fetchSettings,
   fetchWarehouses,
 } from "@/lib/admin-api";
+import { requireAdminUser } from "@/lib/admin-session";
+import { signOutAction } from "./login/actions";
 import { WarehouseForm } from "./warehouse-form";
 
 export default async function AdminPage() {
+  const user = await requireAdminUser();
+
   const [warehouses, settings] = await Promise.all([
     fetchWarehouses(),
     fetchSettings(),
@@ -15,12 +19,23 @@ export default async function AdminPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
-      <header>
-        <h1 className="text-2xl font-semibold">Admin – zdroj skladu</h1>
-        <p className="text-sm text-muted-foreground">
-          Vyberte sklad z Flexibee, ze kterého se budou načítat produkty a
-          skladové zásoby. „Globální zásoba“ použije výchozí hodnotu z Flexibee.
-        </p>
+      <header className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">Admin – zdroj skladu</h1>
+          <p className="text-sm text-muted-foreground">
+            Vyberte sklad z Flexibee, ze kterého se budou načítat produkty a
+            skladové zásoby. „Globální zásoba“ použije výchozí hodnotu z
+            Flexibee.
+          </p>
+        </div>
+        <form action={signOutAction}>
+          <span className="block text-xs text-muted-foreground">
+            {user.email}
+          </span>
+          <button type="submit" className="text-sm underline">
+            Odhlásit
+          </button>
+        </form>
       </header>
 
       {warehouses.status === "ok" && settings.status === "ok" ? (
