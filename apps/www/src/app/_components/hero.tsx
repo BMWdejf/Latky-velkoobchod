@@ -1,54 +1,59 @@
 import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
+/**
+ * Forest-green editorial banner (1216×488, radius 16) from the Figma frame.
+ * The image side is a placeholder until product photography is available.
+ */
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-background">
-      <div className="mx-auto grid max-w-[1280px] gap-10 px-4 py-12 md:px-6 md:py-16 lg:grid-cols-[1fr_0.8fr] lg:gap-16 lg:px-10 lg:py-20">
-        <div className="flex flex-col gap-6">
+    <section className="px-4 pb-4 pt-6 md:px-6 lg:px-8">
+      <div className="mx-auto grid max-w-[1216px] overflow-hidden rounded-[16px] bg-brand text-primary-foreground lg:h-[488px] lg:grid-cols-[729px_1fr]">
+        <div className="flex flex-col justify-center gap-5 p-8 md:p-10 lg:p-14">
           <div className="flex flex-wrap gap-2">
-            <span className="rounded-sm bg-brand px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] text-primary-foreground">
+            <span className="rounded-sm bg-primary-foreground px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] text-brand">
               Partner Gold
             </span>
-            <span className="rounded-sm border border-hairline bg-card px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] text-foreground">
+            <span className="rounded-sm border border-white/30 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em]">
               -15% sleva pro velkoobchod
             </span>
           </div>
 
-          <h1 className="font-serif text-4xl leading-[1.1] tracking-tight text-foreground md:text-5xl lg:text-[52px]">
-            Velkoobchodní dodávky prémiových textilií &amp; ložního prádla
+          <h1 className="font-serif text-[28px] leading-[34px] tracking-tight md:text-[36px] md:leading-[44px]">
+            Velkoobchodní dodávky
+            <br className="hidden md:inline" /> prémiových textilií &amp;
+            ložního <br className="hidden md:inline" />
+            prádla
           </h1>
 
-          <p className="max-w-xl text-base leading-6 text-ink-muted md:text-lg">
+          <p className="max-w-xl text-base leading-6 text-white/80">
             Přímý dovoz látek v rolích, metráže a hotelových kolekcí pro oděvní
             značky, krejčovské ateliéry a ubytovací kapacity. Trvalé skladové
             zásoby v Praze a rychlá expedice.
           </p>
 
-          <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-            <Button asChild size="lg" className="h-11 rounded-sm px-6">
-              <a href="#katalog">
-                Přejít do velkoobchodního katalogu
-                <ArrowRight className="size-4" aria-hidden="true" />
-              </a>
-            </Button>
-            <Button
+          <div className="flex flex-col gap-4 pt-2 sm:flex-row">
+            <a
+              href="#katalog"
+              className="flex h-11 items-center justify-center gap-2 rounded-sm bg-primary-foreground px-6 text-sm font-semibold text-brand"
+            >
+              Přejít do velkoobchodního katalogu
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </a>
+            <button
               type="button"
-              variant="outline"
-              size="lg"
               disabled
-              className="h-11 rounded-sm px-6"
+              className="h-11 rounded-sm border border-white/40 px-6 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
             >
               Rychlá objednávka podle SKU
-            </Button>
+            </button>
           </div>
         </div>
 
         <div
           aria-hidden="true"
-          className="relative hidden aspect-[4/5] overflow-hidden rounded-lg border border-hairline bg-gradient-to-br from-sage via-sand to-brand-soft lg:block"
+          className="relative hidden min-h-[360px] bg-gradient-to-br from-sand via-sage to-brand-soft lg:block"
         >
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e3f3512_1px,transparent_1px),linear-gradient(to_bottom,#1e3f3512_1px,transparent_1px)] bg-[size:40px_40px]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-brand to-transparent" />
         </div>
       </div>
     </section>

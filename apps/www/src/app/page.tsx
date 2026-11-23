@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { Hero } from "./_components/hero";
 import { ProductCatalog } from "./_components/product-catalog";
 import { SiteFooter } from "./_components/site-footer";

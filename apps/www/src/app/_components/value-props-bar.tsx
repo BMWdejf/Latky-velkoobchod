@@ -32,13 +32,13 @@ const valueProps: ValueProp[] = [
 
 export function ValuePropsBar() {
   return (
-    <section
-      aria-label="Výhody pro velkoobchod"
-      className="border-y border-hairline bg-card"
-    >
-      <ul className="mx-auto grid max-w-[1280px] grid-cols-2 gap-px bg-hairline lg:grid-cols-4">
+    <section aria-label="Výhody pro velkoobchod" className="py-4">
+      <ul className="mx-auto grid max-w-[1280px] grid-cols-2 gap-4 px-4 md:px-6 lg:grid-cols-4 lg:px-8">
         {valueProps.map(({ title, description, icon: Icon }) => (
-          <li key={title} className="flex gap-3 bg-card p-4 md:p-6">
+          <li
+            key={title}
+            className="flex gap-3 rounded-sm border border-hairline bg-card px-4 py-[21px]"
+          >
             <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-sm bg-sage text-brand">
               <Icon className="size-4" aria-hidden="true" />
             </span>

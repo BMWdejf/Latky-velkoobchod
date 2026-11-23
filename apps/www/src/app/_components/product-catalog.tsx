@@ -14,13 +14,13 @@ export async function ProductCatalog() {
     <section
       id="katalog"
       aria-labelledby="catalog-heading"
-      className="mx-auto max-w-[1280px] scroll-mt-40 px-4 py-12 md:px-6 md:py-16 lg:px-10"
+      className="mx-auto max-w-[1280px] scroll-mt-40 px-4 py-12 md:px-6 md:py-16 lg:px-8"
     >
-      <div className="flex flex-col gap-4 border-b border-hairline pb-6 lg:flex-row lg:items-end lg:justify-between">
+      <div className="flex flex-col gap-4 border-b border-hairline lg:flex-row lg:items-end lg:justify-between">
         <div className="flex flex-col gap-2">
           <h2
             id="catalog-heading"
-            className="font-serif text-3xl text-foreground md:text-4xl"
+            className="font-serif text-[26px] leading-8 text-foreground"
           >
             Aktuální skladové zásoby pro rychlý nákup
           </h2>
