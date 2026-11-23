@@ -52,9 +52,9 @@ const parseWarehouseId = (body: unknown): string | null => {
   if (value === null) {
     return null;
   }
-  if (typeof value !== "string" || value.trim() === "" || value.length > 64) {
+  if (typeof value !== "string" || !/^\d{1,18}$/.test(value.trim())) {
     throw new BadRequestException(
-      "warehouseId must be a non-empty string or null",
+      "warehouseId must be a numeric Flexibee id or null",
     );
   }
 

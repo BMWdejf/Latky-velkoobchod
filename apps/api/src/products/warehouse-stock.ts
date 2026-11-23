@@ -1,28 +1,44 @@
 /**
- * Per-warehouse stock rows in Flexibee.
- * These names are assumptions that must be checked against the real Flexibee
- * instance (see `GET /c/<company>/<entity>.json?detail=full`). Change them here only.
+ * Flexibee stock cards (`skladova-karta`): one row per product per warehouse.
+ * Verified against a live instance: the warehouse filter goes in the path,
+ * `cenik@ref` links to the price-list item, and `stavMJ` is the quantity on hand.
+ * Change these names here only.
  */
-export const FLEXIBEE_WAREHOUSE_STOCK = {
-  entity: "skladova-zasoba",
+export const FLEXIBEE_STOCK_CARD = {
+  entity: "skladova-karta",
   warehouseField: "sklad",
-  productField: "cenik",
-  quantityField: "mnozstvi",
+  productRef: "cenik@ref",
+  quantityField: "stavMJ",
 } as const;
 
-export type WarehouseStockRow = Record<string, unknown>;
+export type StockCardRow = Record<string, unknown>;
 
-/** Maps product id -> quantity on hand in the selected warehouse. */
+/** Path for the stock cards of one warehouse, e.g. `skladova-karta/(sklad=38)`. */
+export const stockCardsPath = (warehouseId: string): string => {
+  if (!/^\d+$/.test(warehouseId)) {
+    throw new Error(`Invalid warehouse id: ${warehouseId}`);
+  }
+
+  return `${FLEXIBEE_STOCK_CARD.entity}/(${FLEXIBEE_STOCK_CARD.warehouseField}=${warehouseId})`;
+};
+
+/** Extracts the price-list id from a reference such as `/c/firma/cenik/10.json`. */
+export const productIdFromRef = (ref: unknown): string | null => {
+  const match = /\/cenik\/(\d+)\.json$/.exec(String(ref ?? ""));
+  return match?.[1] ?? null;
+};
+
+/** Sums quantity on hand per product id across the stock cards of a warehouse. */
 export const toStockByProductId = (
-  rows: WarehouseStockRow[],
+  rows: StockCardRow[],
 ): Map<string, number> => {
   const stock = new Map<string, number>();
 
   for (const row of rows) {
-    const productId = String(row[FLEXIBEE_WAREHOUSE_STOCK.productField] ?? "");
-    const quantity = Number(row[FLEXIBEE_WAREHOUSE_STOCK.quantityField]);
+    const productId = productIdFromRef(row[FLEXIBEE_STOCK_CARD.productRef]);
+    const quantity = Number(row[FLEXIBEE_STOCK_CARD.quantityField]);
 
-    if (productId === "" || !Number.isFinite(quantity)) {
+    if (!productId || !Number.isFinite(quantity)) {
       continue;
     }
 
