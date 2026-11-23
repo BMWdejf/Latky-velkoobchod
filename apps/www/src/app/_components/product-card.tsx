@@ -29,7 +29,7 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <article className="flex flex-col overflow-hidden rounded-sm border border-hairline bg-card">
-      <div className="relative flex aspect-square items-end justify-start bg-gradient-to-br from-sand to-sage p-3">
+      <div className="relative flex aspect-square items-end justify-start bg-[#f5f5f5] p-3">
         <span
           className={`rounded-sm px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] ${stockClasses[product.stockStatus]}`}
         >
@@ -42,7 +42,7 @@ export function ProductCard({ product }: { product: Product }) {
         ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col gap-4 p-4">
+      <div className="flex flex-1 flex-col gap-5 p-6">
         <div className="flex flex-col gap-1">
           <p className="text-[10px] font-semibold uppercase tracking-[0.04em] text-ink-muted">
             SKU: {product.sku}

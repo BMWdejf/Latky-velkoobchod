@@ -19,10 +19,10 @@ const navigation = [
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-card/95 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-[1280px] items-center gap-6 px-4 py-4 md:px-6 lg:px-10">
+      <div className="mx-auto flex max-w-[1280px] items-center gap-6 px-4 py-[13px] md:px-6 lg:px-8">
         <a
           href="/"
-          className="flex shrink-0 items-center gap-2 font-serif text-xl text-brand"
+          className="flex shrink-0 items-center gap-2 font-serif text-[19px] leading-[26px] text-brand"
         >
           <span
             aria-hidden="true"
@@ -43,7 +43,7 @@ export function SiteHeader() {
             type="search"
             disabled
             placeholder="Hledat podle názvu, SKU nebo EAN…"
-            className="h-10 w-full rounded-sm border border-hairline bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-ink-muted disabled:cursor-not-allowed"
+            className="h-[38px] w-full rounded-sm border border-hairline bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-ink-muted disabled:cursor-not-allowed"
           />
         </label>
 
@@ -71,7 +71,7 @@ export function SiteHeader() {
       </div>
 
       <nav aria-label="Hlavní navigace" className="border-t border-hairline">
-        <ul className="mx-auto flex max-w-[1280px] gap-6 overflow-x-auto px-4 py-2.5 text-sm font-semibold text-foreground md:px-6 lg:px-10">
+        <ul className="mx-auto flex max-w-[1280px] gap-6 overflow-x-auto px-4 py-2.5 text-xs font-semibold text-[#414845] md:px-6 lg:px-8">
           {navigation.map((item) => (
             <li key={item.label} className="shrink-0">
               <a href={item.href} className="hover:text-brand">

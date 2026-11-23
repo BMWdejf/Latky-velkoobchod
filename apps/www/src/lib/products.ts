@@ -26,8 +26,6 @@ export type ProductsResult =
   | { status: "ok"; page: ProductPage }
   | { status: "unavailable" };
 
-const REVALIDATE_SECONDS = 300;
-
 const apiBaseUrl = (): string =>
   (process.env.API_URL ?? "http://localhost:3000").replace(/\/+$/, "");
 
@@ -39,7 +37,8 @@ export const fetchProducts = async (limit: number): Promise<ProductsResult> => {
   try {
     const response = await fetch(
       `${apiBaseUrl()}/products?limit=${limit}&start=0`,
-      { next: { revalidate: REVALIDATE_SECONDS } },
+      // Never cache: a failed response must not be stored, and the API owns caching.
+      { cache: "no-store" },
     );
 
     if (!response.ok) {
