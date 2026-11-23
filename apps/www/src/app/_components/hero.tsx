@@ -1,42 +1,54 @@
-import { Github } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { GITHUB_PROJECT_URL } from "@/lib/constants";
 
 export function Hero() {
   return (
-    <section className="container relative min-h-[calc(100vh-4rem)] px-5 sm:px-20 py-16 lg:py-24 min-w-full flex items-center justify-center">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:50px_50px]" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent to-background [mask-image:radial-gradient(ellipse_at_center,transparent_25%,white_25%)]" />
-      <div className="relative flex flex-col items-center gap-8 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-background border border-border text-foreground text-sm mb-8">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-chart-2"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-chart-2"></span>
-          </span>
-          Built in public, open source from day one
-        </div>
-        <div className="flex max-w-5xl flex-col items-center gap-6">
-          <h1 className="text-balance text-5xl font-bold leading-tight tracking-tight text-foreground md:text-7xl lg:text-8xl">
-            Capture anything, in any moment
+    <section className="relative overflow-hidden bg-background">
+      <div className="mx-auto grid max-w-[1280px] gap-10 px-4 py-12 md:px-6 md:py-16 lg:grid-cols-[1fr_0.8fr] lg:gap-16 lg:px-10 lg:py-20">
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded-sm bg-brand px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] text-primary-foreground">
+              Partner Gold
+            </span>
+            <span className="rounded-sm border border-hairline bg-card px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] text-foreground">
+              -15% sleva pro velkoobchod
+            </span>
+          </div>
+
+          <h1 className="font-serif text-4xl leading-[1.1] tracking-tight text-foreground md:text-5xl lg:text-[52px]">
+            Velkoobchodní dodávky prémiových textilií &amp; ložního prádla
           </h1>
-          <p className="max-w-2xl text-balance text-lg leading-relaxed text-muted-foreground md:text-xl">
-            A simple, frictionless app to capture text, links, images, audio,
-            and files, allowing you to find them later with smart search and
-            automatic connections of related topics.
+
+          <p className="max-w-xl text-base leading-6 text-ink-muted md:text-lg">
+            Přímý dovoz látek v rolích, metráže a hotelových kolekcí pro oděvní
+            značky, krejčovské ateliéry a ubytovací kapacity. Trvalé skladové
+            zásoby v Praze a rychlá expedice.
           </p>
-          <div className="flex flex-col items-center gap-4 pt-5 sm:flex-row">
-            <Button asChild size="lg" variant="outline">
-              <a
-                href={GITHUB_PROJECT_URL}
-                className="flex items-center gap-2"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Github className="h-4 w-4" />
-                View on GitHub
+
+          <div className="flex flex-col gap-3 pt-2 sm:flex-row">
+            <Button asChild size="lg" className="h-11 rounded-sm px-6">
+              <a href="#katalog">
+                Přejít do velkoobchodního katalogu
+                <ArrowRight className="size-4" aria-hidden="true" />
               </a>
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              disabled
+              className="h-11 rounded-sm px-6"
+            >
+              Rychlá objednávka podle SKU
+            </Button>
           </div>
+        </div>
+
+        <div
+          aria-hidden="true"
+          className="relative hidden aspect-[4/5] overflow-hidden rounded-lg border border-hairline bg-gradient-to-br from-sage via-sand to-brand-soft lg:block"
+        >
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e3f3512_1px,transparent_1px),linear-gradient(to_bottom,#1e3f3512_1px,transparent_1px)] bg-[size:40px_40px]" />
         </div>
       </div>
     </section>
