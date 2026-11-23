@@ -1,5 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { FlexibeeClient } from "../flexibee/flexibee.client";
+import { SettingsService } from "../settings/settings.service";
 import { FLEXIBEE_PRODUCT_DETAIL } from "./product.mapper";
 import {
   DEFAULT_PAGE_SIZE,
@@ -27,6 +28,10 @@ describe("ProductsService", () => {
       providers: [
         ProductsService,
         { provide: FlexibeeClient, useValue: { list } },
+        {
+          provide: SettingsService,
+          useValue: { get: jest.fn().mockResolvedValue({ warehouseId: null }) },
+        },
       ],
     }).compile();
 
