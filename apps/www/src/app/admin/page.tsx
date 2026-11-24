@@ -42,6 +42,7 @@ export default async function AdminPage() {
         <WarehouseForm
           warehouses={warehouses.data}
           currentWarehouseId={settings.data.warehouseId}
+          currentRules={settings.data.rules}
         />
       ) : (
         <p role="alert" className="rounded-md border p-3 text-sm">

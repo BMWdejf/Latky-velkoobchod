@@ -9,7 +9,9 @@ export const FLEXIBEE_PRODUCT_FIELDS = {
   name: "nazev",
   unitPrice: "cenaZakl",
   unit: "mj",
-  stock: "zasoba",
+  /** Total quantity on hand across all warehouses (verified on the instance). */
+  stock: "sumStavMj",
+  group: "skupZboz",
   minOrder: "minOdber",
   width: "sirka",
   weight: "gramaz",
@@ -34,6 +36,7 @@ export type Product = {
   unit: string | null;
   stock: number;
   stockStatus: StockStatus;
+  group: string | null;
   minOrder: number | null;
   width: string | null;
   weight: string | null;
@@ -63,6 +66,12 @@ const toNullableString = (value: unknown): string | null => {
   return text.length > 0 ? text : null;
 };
 
+/** Flexibee returns references as `code:XYZ`; keep only the code. */
+export const toGroupCode = (value: unknown): string | null => {
+  const text = toNullableString(value);
+  return text ? text.replace(/^code:/, "") : null;
+};
+
 export const toStockStatus = (stock: number): StockStatus => {
   if (stock <= 0) {
     return "out_of_stock";
@@ -85,6 +94,7 @@ export const mapFlexibeeProduct = (row: FlexibeeProductRow): Product => {
     unit: toNullableString(row[FLEXIBEE_PRODUCT_FIELDS.unit]),
     stock,
     stockStatus: toStockStatus(stock),
+    group: toGroupCode(row[FLEXIBEE_PRODUCT_FIELDS.group]),
     minOrder: toNullableNumber(row[FLEXIBEE_PRODUCT_FIELDS.minOrder]),
     width: toNullableString(row[FLEXIBEE_PRODUCT_FIELDS.width]),
     weight: toNullableString(row[FLEXIBEE_PRODUCT_FIELDS.weight]),

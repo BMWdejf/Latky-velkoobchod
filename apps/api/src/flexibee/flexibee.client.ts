@@ -6,6 +6,8 @@ const USER_AGENT = "loci-api/0.1.4";
 
 type FlexibeeRow = Record<string, unknown>;
 
+const entityName = (entity: string): string => entity.split("/")[0] ?? entity;
+
 type FlexibeeResponse = {
   winstrom?: Record<string, unknown>;
 };
@@ -50,7 +52,8 @@ export class FlexibeeClient {
     }
 
     const body = (await response.json()) as FlexibeeResponse;
-    const rows = body.winstrom?.[entity];
+    // Filtered paths such as `cenik/(id=1)` are answered under the bare entity name.
+    const rows = body.winstrom?.[entityName(entity)];
 
     return Array.isArray(rows) ? (rows as FlexibeeRow[]) : [];
   }

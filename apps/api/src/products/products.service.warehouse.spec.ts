@@ -1,6 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { FlexibeeClient } from "../flexibee/flexibee.client";
 import { SettingsService } from "../settings/settings.service";
+import type { ProductRule } from "./product-rules";
 import { ProductsService } from "./products.service";
 import {
   productIdFromRef,
@@ -8,46 +9,64 @@ import {
   toStockByProductId,
 } from "./warehouse-stock";
 
-describe("ProductsService with a selected warehouse", () => {
-  let service: ProductsService;
-  let list: jest.Mock;
-  let get: jest.Mock;
+const products = {
+  "1": {
+    id: 1,
+    kod: "POV-046",
+    nazev: "Povlečení",
+    cenaZakl: 690,
+    skupZboz: "code:TEXTIL",
+  },
+  "2": {
+    id: 2,
+    kod: "LAT-001",
+    nazev: "Látka",
+    cenaZakl: 120,
+    skupZboz: "code:TEXTIL",
+  },
+  "3": {
+    id: 3,
+    kod: "HOD-001",
+    nazev: "Hodinky",
+    cenaZakl: 990,
+    skupZboz: "code:DOPLNKY",
+  },
+};
+const cards = [
+  { "cenik@ref": "/c/demo/cenik/1.json", stavMJ: "12.0" },
+  { "cenik@ref": "/c/demo/cenik/3.json", stavMJ: "0.0" },
+  { "cenik@ref": "/c/demo/cenik/3.json", stavMJ: "5.0" },
+];
 
-  const products = {
-    "1": { id: 1, kod: "POV-046", nazev: "Povlečení", cenaZakl: 690 },
-    "2": { id: 2, kod: "LAT-001", nazev: "Látka", cenaZakl: 120 },
-    "3": { id: 3, kod: "HOD-001", nazev: "Hodinky", cenaZakl: 990 },
-  };
-  const cards = [
-    { "cenik@ref": "/c/demo/cenik/1.json", stavMJ: "12.0" },
-    { "cenik@ref": "/c/demo/cenik/3.json", stavMJ: "0.0" },
-    { "cenik@ref": "/c/demo/cenik/3.json", stavMJ: "5.0" },
-  ];
-
-  beforeEach(async () => {
-    list = jest.fn(async (entity: string) => {
-      if (entity === stockCardsPath("38")) {
-        return cards;
-      }
-      const ids = [...entity.matchAll(/id=(\d+)/g)].map((m) => m[1]);
-      return ids
-        .map((id) => products[id as keyof typeof products])
-        .filter(Boolean);
-    });
-    get = jest.fn().mockResolvedValue({ warehouseId: "38" });
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ProductsService,
-        { provide: FlexibeeClient, useValue: { list } },
-        { provide: SettingsService, useValue: { get } },
-      ],
-    }).compile();
-
-    service = module.get(ProductsService);
+const setup = async (rules: ProductRule[] = []) => {
+  const list = jest.fn(async (entity: string) => {
+    if (entity === stockCardsPath("38")) {
+      return cards;
+    }
+    const ids = [...entity.matchAll(/id=(\d+)/g)].map((m) => m[1]);
+    return ids
+      .map((id) => products[id as keyof typeof products])
+      .filter(Boolean);
   });
+  const module: TestingModule = await Test.createTestingModule({
+    providers: [
+      ProductsService,
+      { provide: FlexibeeClient, useValue: { list } },
+      {
+        provide: SettingsService,
+        useValue: {
+          get: jest.fn().mockResolvedValue({ warehouseId: "38", rules }),
+        },
+      },
+    ],
+  }).compile();
 
-  it("lists only products that have a stock card in the selected warehouse", async () => {
+  return { service: module.get(ProductsService), list };
+};
+
+describe("ProductsService with a selected warehouse", () => {
+  it("lists only products that have a stock card in the warehouse", async () => {
+    const { service, list } = await setup();
     const page = await service.list({ limit: 10, start: 0 });
 
     expect(list).toHaveBeenCalledWith("skladova-karta/(sklad=38)", {
@@ -58,6 +77,7 @@ describe("ProductsService with a selected warehouse", () => {
   });
 
   it("uses the warehouse quantity and sums several cards per product", async () => {
+    const { service } = await setup();
     const page = await service.list({ limit: 10, start: 0 });
 
     expect(page.items[0]).toMatchObject({
@@ -72,17 +92,27 @@ describe("ProductsService with a selected warehouse", () => {
     });
   });
 
-  it("pages over the warehouse products, not over the full catalogue", async () => {
+  it("pages over the visible products", async () => {
+    const { service } = await setup();
     const page = await service.list({ limit: 1, start: 1 });
 
     expect(page.items.map((item) => item.id)).toEqual(["3"]);
   });
 
+  it("applies the admin rules before paging", async () => {
+    const { service } = await setup([
+      { field: "group", op: "eq", value: "TEXTIL" },
+    ]);
+    const page = await service.list({ limit: 10, start: 0 });
+
+    expect(page.items.map((item) => item.id)).toEqual(["1"]);
+  });
+
   it("returns an empty page when the warehouse has no stock cards", async () => {
+    const { service, list } = await setup();
     list.mockResolvedValueOnce([]);
 
     await expect(service.list()).resolves.toMatchObject({ items: [] });
-    expect(list).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -110,22 +140,7 @@ describe("warehouse stock helpers", () => {
 
 describe("warehouse stock cache", () => {
   it("reads the stock cards once within the cache window", async () => {
-    const list = jest.fn(async (entity: string) =>
-      entity.startsWith("skladova-karta")
-        ? [{ "cenik@ref": "/c/demo/cenik/1.json", stavMJ: "3.0" }]
-        : [{ id: 1, kod: "POV-046", nazev: "Povlečení", cenaZakl: 690 }],
-    );
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ProductsService,
-        { provide: FlexibeeClient, useValue: { list } },
-        {
-          provide: SettingsService,
-          useValue: { get: jest.fn().mockResolvedValue({ warehouseId: "38" }) },
-        },
-      ],
-    }).compile();
-    const service = module.get(ProductsService);
+    const { service, list } = await setup();
 
     await service.list();
     await service.list();

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { saveWarehouseId } from "@/lib/admin-api";
+import { type ProductRule, saveSettings } from "@/lib/admin-api";
 import { getAdminUser } from "@/lib/admin-session";
 
 export type SaveWarehouseState = {
@@ -25,8 +25,16 @@ export const saveWarehouseAction = async (
   const warehouseId =
     typeof raw === "string" && raw.trim() !== "" ? raw.trim() : null;
 
-  const result = await saveWarehouseId(warehouseId);
+  const rules = parseRulesField(formData.get("rules"));
+  if (!rules) {
+    return { status: "error", message: "Pravidla nejsou platná." };
+  }
 
+  const result = await saveSettings(warehouseId, rules);
+
+  if (result.status === "invalid") {
+    return { status: "error", message: result.message };
+  }
   if (result.status !== "ok") {
     return {
       status: "error",
@@ -40,4 +48,19 @@ export const saveWarehouseAction = async (
   revalidatePath("/admin");
   revalidatePath("/");
   return { status: "saved" };
+};
+
+/** The rules editor submits its rows as JSON. Returns null when it is not a list. */
+const parseRulesField = (
+  raw: FormDataEntryValue | null,
+): ProductRule[] | null => {
+  if (typeof raw !== "string" || raw.trim() === "") {
+    return [];
+  }
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as ProductRule[]) : null;
+  } catch {
+    return null;
+  }
 };

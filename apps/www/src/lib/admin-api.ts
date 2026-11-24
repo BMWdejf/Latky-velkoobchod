@@ -6,13 +6,35 @@ export type Warehouse = {
   name: string;
 };
 
+export type RuleField = "stock" | "price" | "group" | "code" | "name";
+
+export type RuleOperator =
+  | "gt"
+  | "gte"
+  | "lt"
+  | "lte"
+  | "eq"
+  | "in"
+  | "notIn"
+  | "contains"
+  | "notContains";
+
+/** One condition. The API validates the exact field/operator/value combinations. */
+export type ProductRule = {
+  field: RuleField;
+  op: RuleOperator;
+  value: string | number | string[];
+};
+
 export type AppSettings = {
   warehouseId: string | null;
+  rules: ProductRule[];
 };
 
 export type AdminDataResult<T> =
   | { status: "ok"; data: T }
   | { status: "unauthorized" }
+  | { status: "invalid"; message: string }
   | { status: "unavailable" };
 
 const apiBaseUrl = (): string =>
@@ -42,6 +64,15 @@ const adminRequest = async <T>(
     if (response.status === 401) {
       return { status: "unauthorized" };
     }
+    if (response.status === 400) {
+      const body = (await response.json().catch(() => ({}))) as {
+        message?: string | string[];
+      };
+      const message = Array.isArray(body.message)
+        ? body.message.join(" ")
+        : (body.message ?? "Neplatné nastavení.");
+      return { status: "invalid", message };
+    }
     if (!response.ok) {
       return { status: "unavailable" };
     }
@@ -56,8 +87,11 @@ export const fetchWarehouses = () => adminRequest<Warehouse[]>("/warehouses");
 
 export const fetchSettings = () => adminRequest<AppSettings>("/settings");
 
-export const saveWarehouseId = (warehouseId: string | null) =>
+export const saveSettings = (
+  warehouseId: string | null,
+  rules: ProductRule[],
+) =>
   adminRequest<AppSettings>("/settings", {
     method: "PUT",
-    body: JSON.stringify({ warehouseId }),
+    body: JSON.stringify({ warehouseId, rules }),
   });

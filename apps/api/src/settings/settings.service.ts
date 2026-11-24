@@ -5,13 +5,16 @@ import {
 } from "@nestjs/common";
 import type { Pool } from "pg";
 import { DATABASE_POOL } from "../database/database.module";
+import { type ProductRule, parseRules } from "../products/product-rules";
 
 export type AppSettings = {
   /** Flexibee `sklad` id whose stock is shown. `null` = use the global stock. */
   warehouseId: string | null;
+  /** Conditions every shown product must meet. Empty = show all. */
+  rules: ProductRule[];
 };
 
-export const DEFAULT_SETTINGS: AppSettings = { warehouseId: null };
+export const DEFAULT_SETTINGS: AppSettings = { warehouseId: null, rules: [] };
 
 const SETTINGS_KEY = "app";
 
@@ -82,5 +85,14 @@ const normalize = (value: unknown): AppSettings => {
       ? source.warehouseId.trim()
       : null;
 
-  return { warehouseId };
+  return { warehouseId, rules: storedRules(source.rules) };
+};
+
+/** Stored rules were validated on save; if they are unreadable, show all products. */
+const storedRules = (value: unknown): ProductRule[] => {
+  try {
+    return parseRules(value);
+  } catch {
+    return [];
+  }
 };

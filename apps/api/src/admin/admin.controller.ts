@@ -6,6 +6,7 @@ import {
   Put,
   UseGuards,
 } from "@nestjs/common";
+import { parseRules } from "../products/product-rules";
 import {
   type AppSettings,
   SettingsService,
@@ -18,6 +19,7 @@ import { AdminGuard } from "./admin.guard";
 
 export type UpdateSettingsBody = {
   warehouseId: string | null;
+  rules?: unknown;
 };
 
 @Controller("admin")
@@ -42,6 +44,7 @@ export class AdminController {
   updateSettings(@Body() body: UpdateSettingsBody): Promise<AppSettings> {
     return this.settings.update({
       warehouseId: parseWarehouseId(body),
+      rules: parseRules(body?.rules),
     });
   }
 }
