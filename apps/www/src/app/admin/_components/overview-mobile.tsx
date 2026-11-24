@@ -12,19 +12,10 @@ const LABEL =
   "text-[11px] font-bold uppercase tracking-[0.04em] text-[#78716c]";
 
 /** Mobile overview: one column, sections in the order of the mobile Figma frame. */
-export function OverviewMobile({ updatedLabel }: { updatedLabel: string }) {
+export function OverviewMobile() {
   return (
     <div className="flex flex-col gap-0 md:hidden">
-      <section className="flex flex-col gap-2 px-4 py-2">
-        <div className="flex items-center justify-between text-[11px] text-[#78716c]">
-          <span className="font-bold uppercase tracking-[0.04em]">
-            Administrace B2B
-          </span>
-          <span>{updatedLabel}</span>
-        </div>
-        <h1 className="font-[family-name:var(--font-newsreader)] text-[26px] leading-8 text-[#1c1917]">
-          Hlavní přehled (Live ERP)
-        </h1>
+      <section className="flex flex-col gap-2 py-2">
         <div className="flex gap-1.5 overflow-x-auto">
           {PERIODS.map((period, index) => (
             <span
@@ -41,7 +32,7 @@ export function OverviewMobile({ updatedLabel }: { updatedLabel: string }) {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3 px-4 pt-4">
+      <section className="flex flex-col gap-3 pt-4">
         <div
           className={`${CARD} flex flex-col gap-3 bg-[#052920] p-5 text-white`}
         >
@@ -83,7 +74,7 @@ export function OverviewMobile({ updatedLabel }: { updatedLabel: string }) {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3 px-4 pt-5">
+      <section className="flex flex-col gap-3 pt-5">
         <div className={`${CARD} flex flex-col gap-3 p-4`}>
           <span className={LABEL}>Skladové kapacity</span>
           {MOBILE.warehouses.map((item) => (
@@ -121,7 +112,7 @@ export function OverviewMobile({ updatedLabel }: { updatedLabel: string }) {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3 px-4 pt-5">
+      <section className="flex flex-col gap-3 pt-5">
         <div className={`${CARD} flex flex-col divide-y divide-[#e9e1dd]`}>
           <div className="p-4">
             <span className={LABEL}>Čeká na expedici</span>
@@ -166,7 +157,7 @@ export function OverviewMobile({ updatedLabel }: { updatedLabel: string }) {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3 px-4 pt-5 pb-6">
+      <section className="flex flex-col gap-3 pt-5 pb-6">
         <div className={`${CARD} flex flex-col gap-3 p-4`}>
           <span className={LABEL}>Systémové integrace v provozu</span>
           {INTEGRATIONS.map((item) => (

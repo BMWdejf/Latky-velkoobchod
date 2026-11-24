@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { fetchSettings, fetchWarehouses } from "@/lib/admin-api";
 import { getAdminUser } from "@/lib/admin-session";
 import { AdminHeader } from "./_components/admin-header";
-import { AdminMobileNav } from "./_components/admin-mobile-nav";
 import { AdminSidebar } from "./_components/admin-sidebar";
 import { AdminStickyBar } from "./_components/admin-sticky-bar";
 
@@ -11,7 +10,7 @@ export const dynamic = "force-dynamic";
 /**
  * Admin shell from the Figma designs.
  * Desktop: sidebar on the left, top bar, scrolling main.
- * Mobile: top bar, navigation row, scrolling main, and an action bar fixed to
+ * Mobile: top bar with menu button, scrolling main, and an action bar fixed to
  * the bottom edge. Without a signed-in admin (the login page) only the
  * children are rendered.
  */
@@ -40,8 +39,7 @@ export default async function AdminLayout({
           flexibeeOk={warehouses.status === "ok"}
           databaseOk={settings.status === "ok"}
         />
-        <AdminMobileNav />
-        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto p-0 md:p-8">
+        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto p-[7px] md:p-8">
           {children}
         </main>
         <AdminStickyBar />
