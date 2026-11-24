@@ -77,7 +77,10 @@ export function RulesEditor({ initialRules }: { initialRules: ProductRule[] }) {
   );
 
   return (
-    <fieldset className="flex flex-col gap-3 rounded-md border p-4">
+    <fieldset
+      id="pravidla"
+      className="flex scroll-mt-20 flex-col gap-3 rounded-[4px] border border-[#e2ddd5] bg-white p-4"
+    >
       <legend className="px-1 text-sm font-medium">
         Zobrazit produkt jen když platí všechny podmínky
       </legend>
