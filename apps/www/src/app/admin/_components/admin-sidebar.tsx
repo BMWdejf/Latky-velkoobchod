@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ADMIN_NAV, type AdminNavItem } from "../admin-nav";
+import { ADMIN_NAV } from "../admin-nav";
 
 /** Desktop sidebar from the Figma design. Hidden on small screens. */
 export function AdminSidebar() {
@@ -30,28 +30,30 @@ export function AdminSidebar() {
       </div>
 
       <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-2.5">
-        {ADMIN_NAV.map((section) => (
-          <div key={section.title} className="flex flex-col gap-1">
+        {ADMIN_NAV.map((group) => (
+          <div key={group.title} className="flex flex-col gap-1">
             <span className="px-2 pt-4 pb-2 text-[10px] font-bold uppercase tracking-[0.5px] text-white">
-              {section.title}
+              {group.title}
             </span>
-            {section.items.map((item) => {
-              const active = isActive(item, pathname);
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  aria-current={active ? "page" : undefined}
-                  className={
-                    active
-                      ? "flex items-center gap-2.5 rounded-[4px] border border-[#c6ebdc]/40 bg-[#1e3f35] px-2.5 py-2 text-sm font-semibold text-white"
-                      : "flex items-center gap-2.5 rounded-[4px] px-2.5 py-1.5 text-sm text-white/80 hover:bg-white/5 hover:text-white"
-                  }
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
+            <div className="ml-2 flex flex-col gap-1 border-l border-white/10 pl-2">
+              {group.items.map((item) => {
+                const active = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    className={
+                      active
+                        ? "flex items-center gap-2.5 rounded-[4px] border border-[#c6ebdc]/40 bg-[#1e3f35] px-2.5 py-2 text-sm font-semibold text-white"
+                        : "flex items-center gap-2.5 rounded-[4px] px-2.5 py-1.5 text-sm text-white/80 hover:bg-white/5 hover:text-white"
+                    }
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         ))}
       </nav>
@@ -62,10 +64,3 @@ export function AdminSidebar() {
     </aside>
   );
 }
-
-/**
- * Items that point at an anchor are never marked active: the anchor is not
- * part of the pathname, so the state would not update when scrolling.
- */
-export const isActive = (item: AdminNavItem, pathname: string): boolean =>
-  !item.hash && pathname === item.path;

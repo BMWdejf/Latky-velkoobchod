@@ -3,20 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ADMIN_NAV } from "../admin-nav";
-import { isActive } from "./admin-sidebar";
 
 /** Horizontal navigation row for small screens, from the mobile Figma design. */
 export function AdminMobileNav() {
   const pathname = usePathname();
-  const items = ADMIN_NAV.flatMap((section) => section.items);
+  const items = ADMIN_NAV.flatMap((group) => group.items);
 
   return (
     <nav className="flex shrink-0 gap-1 overflow-x-auto border-b border-[#e9e1dd] bg-[#fff8f5] px-1 md:hidden">
       {items.map((item) => {
-        const active = isActive(item, pathname);
+        const active = pathname === item.href;
         return (
           <Link
-            key={item.label}
+            key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={
