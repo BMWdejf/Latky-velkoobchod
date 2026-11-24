@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { signOutAction } from "../login/actions";
+import { AdminMobileMenu } from "./admin-mobile-menu";
 
 type AdminHeaderProps = {
   email: string;
@@ -18,12 +19,15 @@ export function AdminHeader({
 }: AdminHeaderProps) {
   return (
     <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-[#e2ddd5] bg-white px-4 md:px-5">
-      <Link href="/admin" className="flex items-center gap-2 md:hidden">
-        <div className="flex size-7 items-center justify-center rounded-[4px] bg-[#0e241e] text-[11px] font-bold text-[#c6ebdc]">
-          LV
-        </div>
-        <span className="text-sm font-semibold">Administrace</span>
-      </Link>
+      <div className="flex min-w-0 items-center gap-2 md:hidden">
+        <AdminMobileMenu />
+        <Link href="/admin" className="flex min-w-0 items-center gap-2">
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-[4px] bg-[#0e241e] text-[11px] font-bold text-[#c6ebdc]">
+            LV
+          </div>
+          <span className="truncate text-sm font-semibold">Administrace</span>
+        </Link>
+      </div>
 
       <div className="relative hidden w-full max-w-md md:block">
         <input
