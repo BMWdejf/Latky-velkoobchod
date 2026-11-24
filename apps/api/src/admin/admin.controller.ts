@@ -8,6 +8,10 @@ import {
 } from "@nestjs/common";
 import { parseRules } from "../products/product-rules";
 import {
+  ProductsService,
+  type ProductsSummary,
+} from "../products/products.service";
+import {
   type AppSettings,
   SettingsService,
 } from "../settings/settings.service";
@@ -16,6 +20,12 @@ import {
   WarehousesService,
 } from "../warehouses/warehouses.service";
 import { AdminGuard } from "./admin.guard";
+
+export type AdminOverview = ProductsSummary & {
+  warehouseName: string | null;
+  flexibeeOk: boolean;
+  databaseOk: boolean;
+};
 
 export type UpdateSettingsBody = {
   warehouseId: string | null;
@@ -28,11 +38,38 @@ export class AdminController {
   constructor(
     private readonly settings: SettingsService,
     private readonly warehouses: WarehousesService,
+    private readonly products: ProductsService,
   ) {}
 
   @Get("warehouses")
   listWarehouses(): Promise<Warehouse[]> {
     return this.warehouses.list();
+  }
+
+  /** Data for the admin overview. Each external service is checked on its own. */
+  @Get("overview")
+  async overview(): Promise<AdminOverview> {
+    const [summary, warehouseCheck, databaseOk] = await Promise.all([
+      this.products.summary(),
+      this.warehouses.list().then(
+        (list) => ({ list, ok: true }),
+        () => ({ list: null, ok: false }),
+      ),
+      this.settings.get().then(
+        () => true,
+        () => false,
+      ),
+    ]);
+    const selected = warehouseCheck.list?.find(
+      (warehouse) => warehouse.id === summary.warehouseId,
+    );
+
+    return {
+      ...summary,
+      warehouseName: selected ? `${selected.code} – ${selected.name}` : null,
+      flexibeeOk: warehouseCheck.ok,
+      databaseOk,
+    };
   }
 
   @Get("settings")

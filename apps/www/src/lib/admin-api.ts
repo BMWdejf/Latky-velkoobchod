@@ -95,3 +95,23 @@ export const saveSettings = (
     method: "PUT",
     body: JSON.stringify({ warehouseId, rules }),
   });
+
+export type AdminOverview = {
+  warehouseId: string | null;
+  warehouseName: string | null;
+  ruleCount: number;
+  total: number;
+  lowStock: number;
+  outOfStock: number;
+  criticalItems: Array<{
+    id: string;
+    sku: string;
+    name: string;
+    stock: number;
+  }>;
+  groups: Array<{ name: string; count: number; share: number }>;
+  flexibeeOk: boolean;
+  databaseOk: boolean;
+};
+
+export const fetchOverview = () => adminRequest<AdminOverview>("/overview");

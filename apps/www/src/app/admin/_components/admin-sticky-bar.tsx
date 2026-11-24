@@ -3,6 +3,12 @@
 import { usePathname } from "next/navigation";
 import { RULES_FORM_ID, WAREHOUSE_FORM_ID } from "../form-ids";
 
+/** Pages with a settings form; other pages have no action bar. */
+const FORM_BY_PATH: Record<string, string> = {
+  "/admin": WAREHOUSE_FORM_ID,
+  "/admin/pravidla": RULES_FORM_ID,
+};
+
 /**
  * Bottom action bar from the mobile design. It stays on the bottom edge of the
  * screen while the main area scrolls. Its buttons act on the form of the page
@@ -10,8 +16,10 @@ import { RULES_FORM_ID, WAREHOUSE_FORM_ID } from "../form-ids";
  */
 export function AdminStickyBar() {
   const pathname = usePathname();
-  const formId =
-    pathname === "/admin/pravidla" ? RULES_FORM_ID : WAREHOUSE_FORM_ID;
+  const formId = FORM_BY_PATH[pathname];
+  if (!formId) {
+    return null;
+  }
 
   return (
     <div className="flex shrink-0 gap-2 border-t border-[#e9e1dd] bg-[#fff8f5] p-4 md:hidden">

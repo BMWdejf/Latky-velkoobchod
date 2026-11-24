@@ -13,7 +13,10 @@ export type AdminNavGroup = {
 export const ADMIN_NAV: AdminNavGroup[] = [
   {
     title: "Operativa B2B",
-    items: [{ label: "Katalog na webu", href: "/" }],
+    items: [
+      { label: "Přehled", href: "/admin/prehled" },
+      { label: "Katalog na webu", href: "/" },
+    ],
   },
   {
     title: "Nastavení & řízení portálu",
