@@ -13,7 +13,7 @@ export default async function AdminOverviewPage() {
   return (
     <>
       <OverviewDesktop updatedLabel={updatedLabel} />
-      <OverviewMobile updatedLabel={updatedLabel} />
+      <OverviewMobile />
     </>
   );
 }

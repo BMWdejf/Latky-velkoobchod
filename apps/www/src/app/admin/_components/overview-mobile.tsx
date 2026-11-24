@@ -12,19 +12,10 @@ const LABEL =
   "text-[11px] font-bold uppercase tracking-[0.04em] text-[#78716c]";
 
 /** Mobile overview: one column, sections in the order of the mobile Figma frame. */
-export function OverviewMobile({ updatedLabel }: { updatedLabel: string }) {
+export function OverviewMobile() {
   return (
     <div className="flex flex-col gap-0 md:hidden">
       <section className="flex flex-col gap-2 px-4 py-2">
-        <div className="flex items-center justify-between text-[11px] text-[#78716c]">
-          <span className="font-bold uppercase tracking-[0.04em]">
-            Administrace B2B
-          </span>
-          <span>{updatedLabel}</span>
-        </div>
-        <h1 className="font-[family-name:var(--font-newsreader)] text-[26px] leading-8 text-[#1c1917]">
-          Hlavní přehled (Live ERP)
-        </h1>
         <div className="flex gap-1.5 overflow-x-auto">
           {PERIODS.map((period, index) => (
             <span
