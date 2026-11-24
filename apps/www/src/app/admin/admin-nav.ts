@@ -1,15 +1,15 @@
 import type { LucideIcon } from "lucide-react";
-import { SlidersHorizontal, Warehouse } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 
 export type AdminNavItem = {
   label: string;
   href: string;
-  icon: LucideIcon;
 };
 
-/** A category: a title that holds links to pages below it. */
+/** A main category with an icon; its subcategories are links to pages. */
 export type AdminNavGroup = {
   title: string;
+  icon: LucideIcon;
   items: AdminNavItem[];
 };
 
@@ -17,13 +17,10 @@ export type AdminNavGroup = {
 export const ADMIN_NAV: AdminNavGroup[] = [
   {
     title: "Nastavení & řízení portálu",
+    icon: SlidersHorizontal,
     items: [
-      { label: "Zdroj skladu", href: "/admin/zdroj-skladu", icon: Warehouse },
-      {
-        label: "Pravidla zobrazení",
-        href: "/admin/pravidla",
-        icon: SlidersHorizontal,
-      },
+      { label: "Zdroj skladu", href: "/admin/zdroj-skladu" },
+      { label: "Pravidla zobrazení", href: "/admin/pravidla" },
     ],
   },
 ];
