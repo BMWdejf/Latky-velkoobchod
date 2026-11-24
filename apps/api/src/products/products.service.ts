@@ -9,11 +9,17 @@ import {
   toStockStatus,
 } from "./product.mapper";
 import { matchesAllRules, type ProductRule } from "./product-rules";
-import { stockCardsPath, toStockByProductId } from "./warehouse-stock";
+import {
+  type StockEntry,
+  stockCardsPath,
+  toStockEntries,
+} from "./warehouse-stock";
 
 export const PRODUCTS_ENTITY = "cenik";
 export const MAX_PAGE_SIZE = 100;
 export const DEFAULT_PAGE_SIZE = 6;
+/** The admin table shows ten rows per page. */
+export const ADMIN_DEFAULT_PAGE_SIZE = 10;
 
 /** Stock cards and the visible product list are cached this long. */
 export const CACHE_TTL_MS = 60_000;
@@ -51,7 +57,10 @@ export type ProductsSummary = {
 
 @Injectable()
 export class ProductsService {
-  private readonly stockCache = new Map<string, Cached<Map<string, number>>>();
+  private readonly stockCache = new Map<
+    string,
+    Cached<Map<string, StockEntry>>
+  >();
   private readonly listCache = new Map<string, Cached<Product[]>>();
 
   constructor(
@@ -116,6 +125,84 @@ export class ProductsService {
   }
 
   /**
+   * Admin product list: every product of the selected source (warehouse or
+   * global), not only the visible ones. Each row says whether the web shows it.
+   * Counts and KPIs always cover the whole source; filters only narrow `items`.
+   */
+  async adminList(
+    options: ListAdminProductsOptions = {},
+  ): Promise<AdminProductPage> {
+    const limit = clamp(
+      options.limit ?? ADMIN_DEFAULT_PAGE_SIZE,
+      1,
+      MAX_PAGE_SIZE,
+    );
+    const start = Math.max(0, options.start ?? 0);
+    const filter = options.filter ?? "all";
+    const { warehouseId, rules } = await this.settings.get();
+
+    const products = await this.allProducts(warehouseId);
+    const annotated: AdminProduct[] = products
+      .map((product) => ({
+        ...product,
+        visibleForWeb: matchesAllRules(product, rules),
+      }))
+      .sort((a, b) => Number(a.id) - Number(b.id));
+
+    const counts: Record<AdminProductFilter, number> = {
+      all: annotated.length,
+      low: annotated.filter(isLowStock).length,
+      out: annotated.filter((product) => product.stockStatus === "out_of_stock")
+        .length,
+      hidden: annotated.filter((product) => !product.visibleForWeb).length,
+    };
+
+    const query = options.q?.trim().toLocaleLowerCase("cs-CZ") ?? "";
+    const matching = annotated.filter(
+      (product) =>
+        matchesFilter(product, filter) &&
+        (options.group === undefined || product.group === options.group) &&
+        (query === "" ||
+          product.name.toLocaleLowerCase("cs-CZ").includes(query) ||
+          product.sku.toLocaleLowerCase("cs-CZ").includes(query)),
+    );
+
+    return {
+      items: matching.slice(start, start + limit),
+      total: matching.length,
+      limit,
+      start,
+      counts,
+      kpis: {
+        totalSku: annotated.length,
+        hiddenForWeb: counts.hidden,
+        lowStock: counts.low,
+        outOfStock: counts.out,
+        stockValue: annotated.reduce(
+          (sum, product) => sum + product.stock * product.unitPrice,
+          0,
+        ),
+      },
+    };
+  }
+
+  /** Every product of the warehouse (only those with a stock card) or of the price list. */
+  private async allProducts(warehouseId: string | null): Promise<Product[]> {
+    const key = `all:${warehouseId ?? "global"}`;
+    const cached = readCache(this.listCache, key);
+    if (cached) {
+      return cached;
+    }
+
+    const products = warehouseId
+      ? await this.warehouseProducts(warehouseId)
+      : await this.globalProducts();
+
+    writeCache(this.listCache, key, products);
+    return products;
+  }
+
+  /**
    * Products that pass the admin rules, sorted by id. The full set is built
    * first so paging stays correct, then cached for a short time.
    */
@@ -169,15 +256,21 @@ export class ProductsService {
     }
 
     return rows.map(mapFlexibeeProduct).map((product) => {
-      const stock = stockByProduct.get(product.id) ?? 0;
-      return { ...product, stock, stockStatus: toStockStatus(stock) };
+      const entry = stockByProduct.get(product.id);
+      const stock = entry?.quantity ?? 0;
+      return {
+        ...product,
+        stock,
+        stockStatus: toStockStatus(stock),
+        minStock: entry?.minQuantity ?? null,
+      };
     });
   }
 
   /** Product id -> quantity on hand in one warehouse. */
   private async warehouseStock(
     warehouseId: string,
-  ): Promise<Map<string, number>> {
+  ): Promise<Map<string, StockEntry>> {
     const cached = readCache(this.stockCache, warehouseId);
     if (cached) {
       return cached;
@@ -187,10 +280,10 @@ export class ProductsService {
       detail: "full",
       limit: "0",
     });
-    const stock = toStockByProductId(cards);
-    writeCache(this.stockCache, warehouseId, stock);
+    const entries = toStockEntries(cards);
+    writeCache(this.stockCache, warehouseId, entries);
 
-    return stock;
+    return entries;
   }
 }
 
@@ -209,3 +302,61 @@ const writeCache = <T>(
 
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(Math.max(value, min), max);
+
+export type AdminProductFilter = "all" | "low" | "out" | "hidden";
+
+export const ADMIN_PRODUCT_FILTERS: readonly AdminProductFilter[] = [
+  "all",
+  "low",
+  "out",
+  "hidden",
+];
+
+export type AdminProduct = Product & {
+  /** Whether the admin rules let this product show on the web. */
+  visibleForWeb: boolean;
+};
+
+export type ListAdminProductsOptions = {
+  q?: string;
+  filter?: AdminProductFilter;
+  group?: string;
+  limit?: number;
+  start?: number;
+};
+
+export type AdminProductPage = {
+  items: AdminProduct[];
+  /** Products matching the filters, before paging. */
+  total: number;
+  limit: number;
+  start: number;
+  counts: Record<AdminProductFilter, number>;
+  kpis: {
+    totalSku: number;
+    hiddenForWeb: number;
+    lowStock: number;
+    outOfStock: number;
+    /** Quantity times base price, summed over the source. Assumes `cenaZakl` is without VAT. */
+    stockValue: number;
+  };
+};
+
+const isLowStock = (product: Product): boolean =>
+  product.stockStatus === "low_stock";
+
+const matchesFilter = (
+  product: AdminProduct,
+  filter: AdminProductFilter,
+): boolean => {
+  switch (filter) {
+    case "low":
+      return isLowStock(product);
+    case "out":
+      return product.stockStatus === "out_of_stock";
+    case "hidden":
+      return !product.visibleForWeb;
+    default:
+      return true;
+  }
+};

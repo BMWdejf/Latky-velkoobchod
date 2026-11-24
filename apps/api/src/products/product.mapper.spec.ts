@@ -13,6 +13,7 @@ describe("mapFlexibeeProduct", () => {
       sirka: "160",
       gramaz: "240 g/m²",
       slozeni: "100% Bavlna",
+      eanKod: "8594182910121",
     });
 
     expect(product).toEqual({
@@ -29,6 +30,8 @@ describe("mapFlexibeeProduct", () => {
       width: "160",
       weight: "240 g/m²",
       composition: "100% Bavlna",
+      ean: "8594182910121",
+      minStock: null,
     });
   });
 

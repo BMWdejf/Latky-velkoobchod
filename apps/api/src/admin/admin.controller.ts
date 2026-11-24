@@ -4,10 +4,14 @@ import {
   Controller,
   Get,
   Put,
+  Query,
   UseGuards,
 } from "@nestjs/common";
 import { parseRules } from "../products/product-rules";
 import {
+  ADMIN_PRODUCT_FILTERS,
+  type AdminProductFilter,
+  type AdminProductPage,
   ProductsService,
   type ProductsSummary,
 } from "../products/products.service";
@@ -72,6 +76,14 @@ export class AdminController {
     };
   }
 
+  /** Product list for the admin Products page, with search, filters and paging. */
+  @Get("products")
+  listProducts(
+    @Query() query: Record<string, unknown>,
+  ): Promise<AdminProductPage> {
+    return this.products.adminList(parseProductQuery(query));
+  }
+
   @Get("settings")
   getSettings(): Promise<AppSettings> {
     return this.settings.get();
@@ -99,4 +111,48 @@ const parseWarehouseId = (body: unknown): string | null => {
   }
 
   return value.trim();
+};
+
+const MAX_QUERY_LENGTH = 100;
+
+/** Validates the query string of `GET /admin/products`. Unknown keys are ignored. */
+export const parseProductQuery = (query: Record<string, unknown>) => {
+  const text = (name: string): string | undefined => {
+    const value = query[name];
+    if (value === undefined || value === "") {
+      return undefined;
+    }
+    if (typeof value !== "string" || value.length > MAX_QUERY_LENGTH) {
+      throw new BadRequestException(`${name} must be a short string`);
+    }
+    return value.trim();
+  };
+  const integer = (
+    name: string,
+    min: number,
+    max: number,
+  ): number | undefined => {
+    const raw = text(name);
+    if (raw === undefined) {
+      return undefined;
+    }
+    if (!/^\d+$/.test(raw)) {
+      throw new BadRequestException(`${name} must be a whole number`);
+    }
+    return Math.min(Math.max(Number(raw), min), max);
+  };
+  const filter = text("filter") ?? "all";
+  if (!(ADMIN_PRODUCT_FILTERS as readonly string[]).includes(filter)) {
+    throw new BadRequestException(
+      `filter must be one of: ${ADMIN_PRODUCT_FILTERS.join(", ")}`,
+    );
+  }
+
+  return {
+    q: text("q"),
+    filter: filter as AdminProductFilter,
+    group: text("group"),
+    limit: integer("limit", 1, 100),
+    start: integer("start", 0, Number.MAX_SAFE_INTEGER),
+  };
 };

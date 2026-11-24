@@ -16,6 +16,8 @@ export const FLEXIBEE_PRODUCT_FIELDS = {
   width: "sirka",
   weight: "gramaz",
   composition: "slozeni",
+  /** EAN barcode, verified on the instance. */
+  ean: "eanKod",
 } as const;
 
 export const FLEXIBEE_PRODUCT_DETAIL = `custom:${Object.values(
@@ -41,6 +43,9 @@ export type Product = {
   width: string | null;
   weight: string | null;
   composition: string | null;
+  ean: string | null;
+  /** Minimum stock of the selected warehouse (stock card `minMJ`); null without a warehouse. */
+  minStock: number | null;
 };
 
 type FlexibeeProductRow = Record<string, unknown>;
@@ -99,5 +104,7 @@ export const mapFlexibeeProduct = (row: FlexibeeProductRow): Product => {
     width: toNullableString(row[FLEXIBEE_PRODUCT_FIELDS.width]),
     weight: toNullableString(row[FLEXIBEE_PRODUCT_FIELDS.weight]),
     composition: toNullableString(row[FLEXIBEE_PRODUCT_FIELDS.composition]),
+    ean: toNullableString(row[FLEXIBEE_PRODUCT_FIELDS.ean]),
+    minStock: null,
   };
 };
