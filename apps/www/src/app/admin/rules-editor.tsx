@@ -77,13 +77,22 @@ export function RulesEditor({ initialRules }: { initialRules: ProductRule[] }) {
   );
 
   return (
-    <fieldset
+    <section
       id="pravidla"
+      aria-labelledby="pravidla-nadpis"
       className="flex scroll-mt-20 flex-col gap-3 rounded-[4px] border border-[#e2ddd5] bg-white p-4"
     >
-      <legend className="px-1 text-sm font-medium">
-        Zobrazit produkt jen když platí všechny podmínky
-      </legend>
+      <header className="flex flex-col gap-1">
+        <h2
+          id="pravidla-nadpis"
+          className="text-base font-semibold text-[#1c1917]"
+        >
+          Pravidla zobrazení
+        </h2>
+        <p className="text-sm text-[#57534e]">
+          Zobrazit produkty jen když platí tyto pravidla
+        </p>
+      </header>
 
       {rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">
@@ -155,6 +164,6 @@ export function RulesEditor({ initialRules }: { initialRules: ProductRule[] }) {
       </button>
 
       <input type="hidden" name="rules" value={payload} />
-    </fieldset>
+    </section>
   );
 }
