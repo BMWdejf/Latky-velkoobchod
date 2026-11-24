@@ -32,8 +32,11 @@ export type ListProductsOptions = {
   start?: number;
 };
 
+/** Product as the public list returns it: admin-only fields are left out. */
+export type PublicProduct = Omit<Product, "minStock">;
+
 export type ProductPage = {
-  items: Product[];
+  items: PublicProduct[];
   limit: number;
   start: number;
 };
@@ -76,7 +79,9 @@ export class ProductsService {
     const visible = await this.visibleProducts(warehouseId, rules);
 
     return {
-      items: visible.slice(start, start + limit),
+      items: visible
+        .slice(start, start + limit)
+        .map(({ minStock: _adminOnly, ...product }) => product),
       limit,
       start,
     };
