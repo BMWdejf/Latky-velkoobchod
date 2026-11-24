@@ -107,3 +107,32 @@ describe("warehouse stock helpers", () => {
     expect([...stock.entries()]).toEqual([["7", 2.5]]);
   });
 });
+
+describe("warehouse stock cache", () => {
+  it("reads the stock cards once within the cache window", async () => {
+    const list = jest.fn(async (entity: string) =>
+      entity.startsWith("skladova-karta")
+        ? [{ "cenik@ref": "/c/demo/cenik/1.json", stavMJ: "3.0" }]
+        : [{ id: 1, kod: "POV-046", nazev: "Povlečení", cenaZakl: 690 }],
+    );
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ProductsService,
+        { provide: FlexibeeClient, useValue: { list } },
+        {
+          provide: SettingsService,
+          useValue: { get: jest.fn().mockResolvedValue({ warehouseId: "38" }) },
+        },
+      ],
+    }).compile();
+    const service = module.get(ProductsService);
+
+    await service.list();
+    await service.list();
+
+    const cardCalls = list.mock.calls.filter(([entity]) =>
+      String(entity).startsWith("skladova-karta"),
+    );
+    expect(cardCalls).toHaveLength(1);
+  });
+});

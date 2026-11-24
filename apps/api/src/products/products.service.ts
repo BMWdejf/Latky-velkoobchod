@@ -13,6 +13,11 @@ export const PRODUCTS_ENTITY = "cenik";
 export const MAX_PAGE_SIZE = 100;
 export const DEFAULT_PAGE_SIZE = 6;
 
+/** Stock per warehouse is cached briefly so public requests do not re-read every card. */
+export const STOCK_CACHE_TTL_MS = 60_000;
+
+type CachedStock = { expiresAt: number; stock: Map<string, number> };
+
 export type ListProductsOptions = {
   limit?: number;
   start?: number;
@@ -26,6 +31,8 @@ export type ProductPage = {
 
 @Injectable()
 export class ProductsService {
+  private readonly stockCache = new Map<string, CachedStock>();
+
   constructor(
     private readonly flexibee: FlexibeeClient,
     private readonly settings: SettingsService,
@@ -62,11 +69,7 @@ export class ProductsService {
     limit: number,
     start: number,
   ): Promise<Product[]> {
-    const cards = await this.flexibee.list(stockCardsPath(warehouseId), {
-      detail: "full",
-      limit: "0",
-    });
-    const stockByProduct = toStockByProductId(cards);
+    const stockByProduct = await this.warehouseStock(warehouseId);
 
     const pageIds = [...stockByProduct.keys()]
       .map(Number)
@@ -87,6 +90,29 @@ export class ProductsService {
       const stock = stockByProduct.get(product.id) ?? 0;
       return { ...product, stock, stockStatus: toStockStatus(stock) };
     });
+  }
+
+  /** Product id -> quantity for one warehouse, cached for STOCK_CACHE_TTL_MS. */
+  private async warehouseStock(
+    warehouseId: string,
+  ): Promise<Map<string, number>> {
+    const now = Date.now();
+    const cached = this.stockCache.get(warehouseId);
+    if (cached && cached.expiresAt > now) {
+      return cached.stock;
+    }
+
+    const cards = await this.flexibee.list(stockCardsPath(warehouseId), {
+      detail: "full",
+      limit: "0",
+    });
+    const stock = toStockByProductId(cards);
+    this.stockCache.set(warehouseId, {
+      expiresAt: now + STOCK_CACHE_TTL_MS,
+      stock,
+    });
+
+    return stock;
   }
 }
 
