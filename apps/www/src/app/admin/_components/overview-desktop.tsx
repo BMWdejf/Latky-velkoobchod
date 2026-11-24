@@ -16,7 +16,7 @@ export function OverviewDesktop() {
   return (
     <div className="hidden w-full flex-col gap-0 md:flex">
       {/* 1. Period tabs and refresh */}
-      <section className="flex h-[84px] flex-col justify-end">
+      <section className="flex flex-col">
         <div className="flex h-[42px] items-center justify-end">
           <div className="flex items-center gap-2">
             <div className="flex rounded-[4px] border border-[#e2ddd5] bg-white p-0.5">
