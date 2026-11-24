@@ -134,6 +134,7 @@ export type AdminProduct = {
   weight: string | null;
   composition: string | null;
   ean: string | null;
+  imageUrl: string | null;
   minStock: number | null;
   visibleForWeb: boolean;
 };

@@ -17,6 +17,7 @@ const product: Product = {
   weight: null,
   composition: null,
   ean: null,
+  imageUrl: null,
   minStock: null,
 };
 

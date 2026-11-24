@@ -70,3 +70,28 @@ describe("ProductsService (no warehouse selected)", () => {
     expect(page.start).toBe(0);
   });
 });
+
+describe("ProductsService public list", () => {
+  it("does not expose the admin-only minimum stock", async () => {
+    const list = jest.fn().mockResolvedValue(catalogue);
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ProductsService,
+        { provide: FlexibeeClient, useValue: { list } },
+        {
+          provide: SettingsService,
+          useValue: {
+            get: jest.fn().mockResolvedValue({ warehouseId: null, rules: [] }),
+          },
+        },
+      ],
+    }).compile();
+
+    const page = await module.get(ProductsService).list();
+
+    expect(page.items.length).toBeGreaterThan(0);
+    for (const item of page.items) {
+      expect(item).not.toHaveProperty("minStock");
+    }
+  });
+});

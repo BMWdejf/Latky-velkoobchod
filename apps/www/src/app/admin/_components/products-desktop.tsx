@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type {
   AdminProduct,
@@ -110,7 +111,7 @@ export function ProductsDesktop({ page, query }: Props) {
               <tr className="border-b border-[#e2ddd5] bg-[#faf9f6]">
                 {[
                   "#",
-                  "Skupina",
+                  "Foto",
                   "Artikl & SKU",
                   "B2B ceník (bez DPH)",
                   "MOQ",
@@ -197,9 +198,21 @@ function ProductRow({
     <tr className="border-b border-[#e2ddd5] last:border-b-0 hover:bg-[#faf9f6]">
       <td className={`${CELL} text-[#57534e]`}>{index}</td>
       <td className={CELL}>
-        <span className="flex h-8 min-w-8 items-center justify-center rounded-[4px] border border-[#e2ddd5] bg-[#f4ece8] px-1.5 text-[10px] font-bold text-[#57534e]">
-          {product.group ?? "–"}
-        </span>
+        {product.imageUrl ? (
+          // eslint-disable-next-line /next/no-img-element
+          <Image
+            src={product.imageUrl}
+            alt=""
+            width={48}
+            height={48}
+            unoptimized
+            className="size-12 rounded-[4px] border border-[#e2ddd5] object-cover"
+          />
+        ) : (
+          <span className="flex h-8 min-w-8 items-center justify-center rounded-[4px] border border-[#e2ddd5] bg-[#f4ece8] px-1.5 text-[10px] font-bold text-[#57534e]">
+            {product.group ?? "–"}
+          </span>
+        )}
       </td>
       <td className={`${CELL} max-w-[260px]`}>
         <div className="flex flex-col gap-1">
