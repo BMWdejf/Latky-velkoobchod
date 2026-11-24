@@ -15,6 +15,7 @@ const product: Product = {
   width: "160",
   weight: "240 g/m²",
   composition: "100% Bavlna",
+  imageUrl: null,
 };
 
 describe("ProductCard", () => {
@@ -70,5 +71,29 @@ describe("ProductCard", () => {
     fireEvent.click(decrease);
     fireEvent.click(decrease);
     expect(quantity).toHaveValue(10);
+  });
+});
+
+describe("ProductCard photo", () => {
+  it("shows the product photo when the product has one", () => {
+    render(
+      <ProductCard
+        product={{
+          ...product,
+          imageUrl: "https://lh3.googleusercontent.com/d/abc=w600",
+        }}
+      />,
+    );
+
+    const image = screen.getByRole("img", { name: product.name });
+    expect(image.getAttribute("src")).toContain(
+      "lh3.googleusercontent.com/d/abc",
+    );
+  });
+
+  it("renders no image without a photo", () => {
+    render(<ProductCard product={product} />);
+
+    expect(screen.queryByRole("img")).toBeNull();
   });
 });

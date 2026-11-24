@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { formatCzk, formatQuantity } from "@/lib/format";
 import type { Product } from "@/lib/products";
 import { QuantityStepper } from "./quantity-stepper";
@@ -30,6 +31,16 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <article className="flex flex-col overflow-hidden rounded-sm border border-hairline bg-card">
       <div className="relative flex aspect-square items-end justify-start bg-[#f5f5f5] p-3">
+        {product.imageUrl ? (
+          <Image
+            src={product.imageUrl}
+            alt={product.name}
+            fill
+            sizes="(min-width: 768px) 33vw, 100vw"
+            unoptimized
+            className="object-cover"
+          />
+        ) : null}
         <span
           className={`rounded-sm px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] ${stockClasses[product.stockStatus]}`}
         >
