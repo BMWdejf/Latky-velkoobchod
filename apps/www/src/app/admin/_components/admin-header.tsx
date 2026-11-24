@@ -21,9 +21,9 @@ export function AdminHeader({
       <Link href="/admin" className="flex items-center gap-2 md:hidden">
         <div className="flex size-7 items-center justify-center rounded-[4px] bg-[#0e241e] text-[11px] font-bold text-[#c6ebdc]">
           LV
-        </Link>
+        </div>
         <span className="text-sm font-semibold">Administrace</span>
-      </div>
+      </Link>
 
       <div className="relative hidden w-full max-w-md md:block">
         <input
