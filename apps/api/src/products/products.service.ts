@@ -7,16 +7,18 @@ import {
   type Product,
   toStockStatus,
 } from "./product.mapper";
+import { matchesAllRules, type ProductRule } from "./product-rules";
 import { stockCardsPath, toStockByProductId } from "./warehouse-stock";
 
 export const PRODUCTS_ENTITY = "cenik";
 export const MAX_PAGE_SIZE = 100;
 export const DEFAULT_PAGE_SIZE = 6;
 
-/** Stock per warehouse is cached briefly so public requests do not re-read every card. */
-export const STOCK_CACHE_TTL_MS = 60_000;
+/** Stock cards and the visible product list are cached this long. */
+export const CACHE_TTL_MS = 60_000;
 
-type CachedStock = { expiresAt: number; stock: Map<string, number> };
+/** Product ids per Flexibee filter request, to keep URLs short. */
+const ID_CHUNK_SIZE = 50;
 
 export type ListProductsOptions = {
   limit?: number;
@@ -29,9 +31,12 @@ export type ProductPage = {
   start: number;
 };
 
+type Cached<T> = { expiresAt: number; value: T };
+
 @Injectable()
 export class ProductsService {
-  private readonly stockCache = new Map<string, CachedStock>();
+  private readonly stockCache = new Map<string, Cached<Map<string, number>>>();
+  private readonly listCache = new Map<string, Cached<Product[]>>();
 
   constructor(
     private readonly flexibee: FlexibeeClient,
@@ -41,50 +46,69 @@ export class ProductsService {
   async list(options: ListProductsOptions = {}): Promise<ProductPage> {
     const limit = clamp(options.limit ?? DEFAULT_PAGE_SIZE, 1, MAX_PAGE_SIZE);
     const start = Math.max(0, options.start ?? 0);
-    const { warehouseId } = await this.settings.get();
+    const { warehouseId, rules } = await this.settings.get();
 
-    const items = warehouseId
-      ? await this.listInWarehouse(warehouseId, limit, start)
-      : await this.listGlobal(limit, start);
+    const visible = await this.visibleProducts(warehouseId, rules);
 
-    return { items, limit, start };
+    return {
+      items: visible.slice(start, start + limit),
+      limit,
+      start,
+    };
   }
 
-  private async listGlobal(limit: number, start: number): Promise<Product[]> {
+  /**
+   * Products that pass the admin rules, sorted by id. The full set is built
+   * first so paging stays correct, then cached for a short time.
+   */
+  private async visibleProducts(
+    warehouseId: string | null,
+    rules: ProductRule[],
+  ): Promise<Product[]> {
+    const key = JSON.stringify([warehouseId, rules]);
+    const cached = readCache(this.listCache, key);
+    if (cached) {
+      return cached;
+    }
+
+    const products = warehouseId
+      ? await this.warehouseProducts(warehouseId)
+      : await this.globalProducts();
+
+    const visible = products
+      .filter((product) => matchesAllRules(product, rules))
+      .sort((a, b) => Number(a.id) - Number(b.id));
+
+    writeCache(this.listCache, key, visible);
+    return visible;
+  }
+
+  /** Global stock: the total quantity on hand from the price list. */
+  private async globalProducts(): Promise<Product[]> {
     const rows = await this.flexibee.list(PRODUCTS_ENTITY, {
       detail: FLEXIBEE_PRODUCT_DETAIL,
-      limit: String(limit),
-      start: String(start),
+      limit: "0",
     });
 
     return rows.map(mapFlexibeeProduct);
   }
 
-  /**
-   * Only products that have a stock card in the selected warehouse. The page
-   * is cut from that set, so paging stays correct.
-   */
-  private async listInWarehouse(
-    warehouseId: string,
-    limit: number,
-    start: number,
-  ): Promise<Product[]> {
+  /** Only products that have a stock card in the selected warehouse. */
+  private async warehouseProducts(warehouseId: string): Promise<Product[]> {
     const stockByProduct = await this.warehouseStock(warehouseId);
+    const ids = [...stockByProduct.keys()];
+    const rows: Record<string, unknown>[] = [];
 
-    const pageIds = [...stockByProduct.keys()]
-      .map(Number)
-      .sort((a, b) => a - b)
-      .slice(start, start + limit);
-
-    if (pageIds.length === 0) {
-      return [];
+    for (let index = 0; index < ids.length; index += ID_CHUNK_SIZE) {
+      const chunk = ids.slice(index, index + ID_CHUNK_SIZE);
+      const filter = chunk.map((id) => `id=${id}`).join(" or ");
+      rows.push(
+        ...(await this.flexibee.list(`${PRODUCTS_ENTITY}/(${filter})`, {
+          detail: FLEXIBEE_PRODUCT_DETAIL,
+          limit: "0",
+        })),
+      );
     }
-
-    const filter = pageIds.map((id) => `id=${id}`).join(" or ");
-    const rows = await this.flexibee.list(`${PRODUCTS_ENTITY}/(${filter})`, {
-      detail: FLEXIBEE_PRODUCT_DETAIL,
-      limit: "0",
-    });
 
     return rows.map(mapFlexibeeProduct).map((product) => {
       const stock = stockByProduct.get(product.id) ?? 0;
@@ -92,14 +116,13 @@ export class ProductsService {
     });
   }
 
-  /** Product id -> quantity for one warehouse, cached for STOCK_CACHE_TTL_MS. */
+  /** Product id -> quantity on hand in one warehouse. */
   private async warehouseStock(
     warehouseId: string,
   ): Promise<Map<string, number>> {
-    const now = Date.now();
-    const cached = this.stockCache.get(warehouseId);
-    if (cached && cached.expiresAt > now) {
-      return cached.stock;
+    const cached = readCache(this.stockCache, warehouseId);
+    if (cached) {
+      return cached;
     }
 
     const cards = await this.flexibee.list(stockCardsPath(warehouseId), {
@@ -107,14 +130,24 @@ export class ProductsService {
       limit: "0",
     });
     const stock = toStockByProductId(cards);
-    this.stockCache.set(warehouseId, {
-      expiresAt: now + STOCK_CACHE_TTL_MS,
-      stock,
-    });
+    writeCache(this.stockCache, warehouseId, stock);
 
     return stock;
   }
 }
+
+const readCache = <T>(cache: Map<string, Cached<T>>, key: string): T | null => {
+  const entry = cache.get(key);
+  return entry && entry.expiresAt > Date.now() ? entry.value : null;
+};
+
+const writeCache = <T>(
+  cache: Map<string, Cached<T>>,
+  key: string,
+  value: T,
+): void => {
+  cache.set(key, { expiresAt: Date.now() + CACHE_TTL_MS, value });
+};
 
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(Math.max(value, min), max);

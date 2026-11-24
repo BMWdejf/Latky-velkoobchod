@@ -1,19 +1,22 @@
 "use client";
 
 import { useActionState } from "react";
-import type { Warehouse } from "@/lib/admin-api";
+import type { ProductRule, Warehouse } from "@/lib/admin-api";
 import { type SaveWarehouseState, saveWarehouseAction } from "./actions";
+import { RulesEditor } from "./rules-editor";
 
 const initialState: SaveWarehouseState = { status: "idle" };
 
 type WarehouseFormProps = {
   warehouses: Warehouse[];
   currentWarehouseId: string | null;
+  currentRules: ProductRule[];
 };
 
 export function WarehouseForm({
   warehouses,
   currentWarehouseId,
+  currentRules,
 }: WarehouseFormProps) {
   const [state, formAction, isPending] = useActionState(
     saveWarehouseAction,
@@ -37,6 +40,8 @@ export function WarehouseForm({
           ))}
         </select>
       </label>
+
+      <RulesEditor initialRules={currentRules} />
 
       <button
         type="submit"

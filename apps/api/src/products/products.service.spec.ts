@@ -9,20 +9,31 @@ import {
   ProductsService,
 } from "./products.service";
 
-describe("ProductsService", () => {
+const catalogue = [
+  {
+    id: 2,
+    kod: "LAT-002",
+    nazev: "Látka",
+    sumStavMj: 50,
+    cenaZakl: 120,
+    skupZboz: "code:A",
+  },
+  {
+    id: 1,
+    kod: "POV-046",
+    nazev: "Povlečení",
+    sumStavMj: 340,
+    cenaZakl: 690,
+    skupZboz: "code:B",
+  },
+];
+
+describe("ProductsService (no warehouse selected)", () => {
   let service: ProductsService;
   let list: jest.Mock;
 
   beforeEach(async () => {
-    list = jest.fn().mockResolvedValue([
-      {
-        id: 1,
-        kod: "POV-046",
-        nazev: "Povlečení",
-        zasoba: 340,
-        cenaZakl: 690,
-      },
-    ]);
+    list = jest.fn().mockResolvedValue(catalogue);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -30,7 +41,9 @@ describe("ProductsService", () => {
         { provide: FlexibeeClient, useValue: { list } },
         {
           provide: SettingsService,
-          useValue: { get: jest.fn().mockResolvedValue({ warehouseId: null }) },
+          useValue: {
+            get: jest.fn().mockResolvedValue({ warehouseId: null, rules: [] }),
+          },
         },
       ],
     }).compile();
@@ -38,26 +51,22 @@ describe("ProductsService", () => {
     service = module.get(ProductsService);
   });
 
-  it("queries the price list with the default page size", async () => {
+  it("reads the whole price list and pages it, sorted by id", async () => {
     const page = await service.list();
 
     expect(list).toHaveBeenCalledWith(PRODUCTS_ENTITY, {
       detail: FLEXIBEE_PRODUCT_DETAIL,
-      limit: String(DEFAULT_PAGE_SIZE),
-      start: "0",
+      limit: "0",
     });
-    expect(page.items).toHaveLength(1);
-    expect(page.items[0]?.sku).toBe("POV-046");
+    expect(page.limit).toBe(DEFAULT_PAGE_SIZE);
+    expect(page.items.map((item) => item.id)).toEqual(["1", "2"]);
+    expect(page.items[0]?.stock).toBe(340);
   });
 
-  it("clamps the page size to the allowed range", async () => {
+  it("clamps the page size and start", async () => {
     const page = await service.list({ limit: 5000, start: -3 });
 
     expect(page.limit).toBe(MAX_PAGE_SIZE);
     expect(page.start).toBe(0);
-    expect(list).toHaveBeenCalledWith(
-      PRODUCTS_ENTITY,
-      expect.objectContaining({ limit: String(MAX_PAGE_SIZE), start: "0" }),
-    );
   });
 });

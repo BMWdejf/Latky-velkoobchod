@@ -21,7 +21,10 @@ describe("SettingsService (Postgres)", () => {
   });
 
   it("returns the global stock default when no row exists", async () => {
-    await expect(service.get()).resolves.toEqual({ warehouseId: null });
+    await expect(service.get()).resolves.toEqual({
+      warehouseId: null,
+      rules: [],
+    });
   });
 
   it("creates the table on first use", async () => {
@@ -35,30 +38,52 @@ describe("SettingsService (Postgres)", () => {
   it("upserts the warehouse id", async () => {
     query.mockImplementation(async (sql: string) =>
       sql.startsWith("SELECT")
-        ? { rows: [{ value: { warehouseId: "7" } }] }
+        ? { rows: [{ value: { warehouseId: "7", rules: [] } }] }
         : { rows: [] },
     );
 
-    await expect(service.update({ warehouseId: "9" })).resolves.toEqual({
-      warehouseId: "9",
+    await expect(
+      service.update({ warehouseId: "9", rules: [] }),
+    ).resolves.toEqual({ warehouseId: "9", rules: [] });
+
+    const upsert = query.mock.calls.find(([sql]) =>
+      String(sql).startsWith("INSERT"),
+    );
+    expect(upsert?.[1]).toEqual([
+      "app",
+      JSON.stringify({ warehouseId: "9", rules: [] }),
+    ]);
+  });
+
+  it("stores the rules with the warehouse", async () => {
+    await service.update({
+      rules: [{ field: "stock", op: "gt", value: 0 }],
     });
 
     const upsert = query.mock.calls.find(([sql]) =>
       String(sql).startsWith("INSERT"),
     );
-    expect(upsert?.[1]).toEqual(["app", JSON.stringify({ warehouseId: "9" })]);
-  });
-
-  it("clears the warehouse when set to null", async () => {
-    await expect(service.update({ warehouseId: null })).resolves.toEqual({
+    expect(JSON.parse(upsert?.[1][1] as string)).toEqual({
       warehouseId: null,
+      rules: [{ field: "stock", op: "gt", value: 0 }],
     });
   });
 
-  it("treats a blank stored warehouse id as unset", async () => {
-    query.mockResolvedValue({ rows: [{ value: { warehouseId: "   " } }] });
+  it("clears the warehouse when set to null", async () => {
+    await expect(
+      service.update({ warehouseId: null, rules: [] }),
+    ).resolves.toEqual({ warehouseId: null, rules: [] });
+  });
 
-    await expect(service.get()).resolves.toEqual({ warehouseId: null });
+  it("treats a blank stored warehouse id as unset", async () => {
+    query.mockResolvedValue({
+      rows: [{ value: { warehouseId: "   ", rules: [] } }],
+    });
+
+    await expect(service.get()).resolves.toEqual({
+      warehouseId: null,
+      rules: [],
+    });
   });
 
   it("fails clearly when DATABASE_URL is missing", async () => {
