@@ -8,11 +8,9 @@ import { OverviewMobile } from "./_components/overview-mobile";
 export default async function AdminOverviewPage() {
   await requireAdminUser();
 
-  const updatedLabel = `Před 3 min`;
-
   return (
     <>
-      <OverviewDesktop updatedLabel={updatedLabel} />
+      <OverviewDesktop />
       <OverviewMobile />
     </>
   );

@@ -12,18 +12,11 @@ const LABEL =
   "text-[11px] font-bold uppercase tracking-[0.04em] text-[#78716c]";
 
 /** Desktop overview. Content width 960px, sections spaced as in the Figma frame. */
-export function OverviewDesktop({ updatedLabel }: { updatedLabel: string }) {
+export function OverviewDesktop() {
   return (
     <div className="hidden w-full flex-col gap-0 md:flex">
-      {/* 1. Breadcrumb and title row */}
-      <section className="flex h-[84px] flex-col justify-between">
-        <div className="flex h-[26px] items-center justify-between">
-          <span className={LABEL}>Administrace B2B</span>
-          <span className="flex items-center gap-1.5 text-[11px] text-[#57534e]">
-            <span className="size-1.5 rounded-full bg-[#059669]" />
-            ERP automatická synchronizace: {updatedLabel}
-          </span>
-        </div>
+      {/* 1. Period tabs and refresh */}
+      <section className="flex h-[84px] flex-col justify-end">
         <div className="flex h-[42px] items-center justify-end">
           <div className="flex items-center gap-2">
             <div className="flex rounded-[4px] border border-[#e2ddd5] bg-white p-0.5">
