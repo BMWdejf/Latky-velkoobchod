@@ -9,6 +9,8 @@ export const FLEXIBEE_STOCK_CARD = {
   warehouseField: "sklad",
   productRef: "cenik@ref",
   quantityField: "stavMJ",
+  /** Minimum stock of the product in this warehouse. */
+  minQuantityField: "minMJ",
 } as const;
 
 export type StockCardRow = Record<string, unknown>;
@@ -29,10 +31,17 @@ export const productIdFromRef = (ref: unknown): string | null => {
 };
 
 /** Sums quantity on hand per product id across the stock cards of a warehouse. */
-export const toStockByProductId = (
+export const toStockByProductId = (rows: StockCardRow[]): Map<string, number> =>
+  new Map([...toStockEntries(rows)].map(([id, entry]) => [id, entry.quantity]));
+
+/** Quantity on hand and minimum stock of one product in one warehouse. */
+export type StockEntry = { quantity: number; minQuantity: number };
+
+/** Sums quantity and minimum per product id across the stock cards of a warehouse. */
+export const toStockEntries = (
   rows: StockCardRow[],
-): Map<string, number> => {
-  const stock = new Map<string, number>();
+): Map<string, StockEntry> => {
+  const entries = new Map<string, StockEntry>();
 
   for (const row of rows) {
     const productId = productIdFromRef(row[FLEXIBEE_STOCK_CARD.productRef]);
@@ -42,8 +51,14 @@ export const toStockByProductId = (
       continue;
     }
 
-    stock.set(productId, (stock.get(productId) ?? 0) + quantity);
+    const minimum = Number(row[FLEXIBEE_STOCK_CARD.minQuantityField]);
+    const previous = entries.get(productId) ?? { quantity: 0, minQuantity: 0 };
+    entries.set(productId, {
+      quantity: previous.quantity + quantity,
+      minQuantity:
+        previous.minQuantity + (Number.isFinite(minimum) ? minimum : 0),
+    });
   }
 
-  return stock;
+  return entries;
 };

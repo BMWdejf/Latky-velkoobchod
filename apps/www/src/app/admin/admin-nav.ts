@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { SlidersHorizontal, Warehouse } from "lucide-react";
+import { Package, SlidersHorizontal, Warehouse } from "lucide-react";
 
 export type AdminNavItem = {
   label: string;
@@ -23,6 +23,12 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     title: "Přehled",
     icon: Warehouse,
     href: "/admin",
+    items: [],
+  },
+  {
+    title: "Produkty",
+    icon: Package,
+    href: "/admin/produkty",
     items: [],
   },
   {

@@ -16,6 +16,8 @@ const product: Product = {
   width: null,
   weight: null,
   composition: null,
+  ean: null,
+  minStock: null,
 };
 
 describe("parseRules", () => {

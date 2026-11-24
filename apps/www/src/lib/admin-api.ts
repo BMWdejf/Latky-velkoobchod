@@ -115,3 +115,60 @@ export type AdminOverview = {
 };
 
 export const fetchOverview = () => adminRequest<AdminOverview>("/overview");
+
+export type AdminProductFilter = "all" | "low" | "out" | "hidden";
+
+/** Mirrors `AdminProduct` returned by `GET /admin/products` in apps/api. */
+export type AdminProduct = {
+  id: string;
+  sku: string;
+  name: string;
+  unitPrice: number;
+  currency: "CZK";
+  unit: string | null;
+  stock: number;
+  stockStatus: "in_stock" | "low_stock" | "out_of_stock";
+  group: string | null;
+  minOrder: number | null;
+  width: string | null;
+  weight: string | null;
+  composition: string | null;
+  ean: string | null;
+  minStock: number | null;
+  visibleForWeb: boolean;
+};
+
+export type AdminProductPage = {
+  items: AdminProduct[];
+  total: number;
+  limit: number;
+  start: number;
+  counts: Record<AdminProductFilter, number>;
+  kpis: {
+    totalSku: number;
+    hiddenForWeb: number;
+    lowStock: number;
+    outOfStock: number;
+    stockValue: number;
+  };
+};
+
+export type AdminProductQuery = {
+  q?: string;
+  filter?: AdminProductFilter;
+  group?: string;
+  start?: number;
+  limit?: number;
+};
+
+/** Product list for the admin Products page. Filters and paging go to the API. */
+export const fetchAdminProducts = (query: AdminProductQuery) => {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== "") {
+      params.set(key, String(value));
+    }
+  }
+  const qs = params.toString();
+  return adminRequest<AdminProductPage>(`/products${qs ? `?${qs}` : ""}`);
+};
