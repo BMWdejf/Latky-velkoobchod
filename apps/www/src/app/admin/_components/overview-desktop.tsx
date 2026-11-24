@@ -14,7 +14,7 @@ const LABEL =
 /** Desktop overview. Content width 960px, sections spaced as in the Figma frame. */
 export function OverviewDesktop({ updatedLabel }: { updatedLabel: string }) {
   return (
-    <div className="mx-auto hidden w-full max-w-[960px] flex-col gap-0 md:flex">
+    <div className="hidden w-full flex-col gap-0 md:flex">
       {/* 1. Breadcrumb and title row */}
       <section className="flex h-[84px] flex-col justify-between">
         <div className="flex h-[26px] items-center justify-between">
@@ -24,10 +24,7 @@ export function OverviewDesktop({ updatedLabel }: { updatedLabel: string }) {
             ERP automatická synchronizace: {updatedLabel}
           </span>
         </div>
-        <div className="flex h-[42px] items-center justify-between">
-          <h1 className="font-[family-name:var(--font-newsreader)] text-[26px] leading-8 text-[#1c1917]">
-            Hlavní operativní přehled (Live ERP)
-          </h1>
+        <div className="flex h-[42px] items-center justify-end">
           <div className="flex items-center gap-2">
             <div className="flex rounded-[4px] border border-[#e2ddd5] bg-white p-0.5">
               {PERIODS.map((period, index) => (
@@ -45,9 +42,6 @@ export function OverviewDesktop({ updatedLabel }: { updatedLabel: string }) {
             </div>
             <span className="flex h-[30px] items-center rounded-[4px] border border-[#e2ddd5] bg-white px-3 text-xs font-semibold text-[#57534e]">
               Aktualizovat
-            </span>
-            <span className="flex h-[30px] items-center rounded-[4px] border border-[#c6ebdc] bg-[#1e3f35] px-3 text-xs font-semibold text-white">
-              Exportovat report (PDF/XLSX)
             </span>
           </div>
         </div>

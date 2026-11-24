@@ -1,9 +1,13 @@
+import type { LucideIcon } from "lucide-react";
+import { SlidersHorizontal, Warehouse } from "lucide-react";
+
 export type AdminNavItem = {
   label: string;
   href: string;
+  icon: LucideIcon;
 };
 
-/** A category: a title that may hold links to pages below it. */
+/** A category: a title that holds links to pages below it. */
 export type AdminNavGroup = {
   title: string;
   items: AdminNavItem[];
@@ -12,17 +16,14 @@ export type AdminNavGroup = {
 /** Shared by the desktop sidebar and the mobile navigation row. */
 export const ADMIN_NAV: AdminNavGroup[] = [
   {
-    title: "Operativa B2B",
-    items: [
-      { label: "Přehled", href: "/admin" },
-      { label: "Katalog na webu", href: "/" },
-    ],
-  },
-  {
     title: "Nastavení & řízení portálu",
     items: [
-      { label: "Zdroj skladu", href: "/admin/zdroj-skladu" },
-      { label: "Pravidla zobrazení", href: "/admin/pravidla" },
+      { label: "Zdroj skladu", href: "/admin/zdroj-skladu", icon: Warehouse },
+      {
+        label: "Pravidla zobrazení",
+        href: "/admin/pravidla",
+        icon: SlidersHorizontal,
+      },
     ],
   },
 ];
