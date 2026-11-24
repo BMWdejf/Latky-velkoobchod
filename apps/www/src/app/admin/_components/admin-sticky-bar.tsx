@@ -5,7 +5,7 @@ import { RULES_FORM_ID, WAREHOUSE_FORM_ID } from "../form-ids";
 
 /** Pages with a settings form; other pages have no action bar. */
 const FORM_BY_PATH: Record<string, string> = {
-  "/admin": WAREHOUSE_FORM_ID,
+  "/admin/zdroj-skladu": WAREHOUSE_FORM_ID,
   "/admin/pravidla": RULES_FORM_ID,
 };
 
