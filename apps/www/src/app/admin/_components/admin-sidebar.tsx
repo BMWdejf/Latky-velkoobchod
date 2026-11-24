@@ -56,26 +56,35 @@ export function AdminSidebar() {
         </Link>
       </div>
 
-      {collapsed ? null : (
-        <div className="flex flex-col gap-1 border-y border-white/5 bg-[#091b15] px-3 py-2">
-          <span className="px-2 text-[10px] font-bold uppercase tracking-[0.5px] text-white">
-            Aktivní uzel správy
-          </span>
-          <div className="flex items-center gap-2 rounded-[4px] bg-white px-2 py-1.5 text-xs font-semibold text-[#0e241e]">
-            Flexibee · Neon Postgres
-          </div>
-        </div>
-      )}
-
       <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-2.5">
         {ADMIN_NAV.map((group) => {
           const GroupIcon = group.icon;
-          const groupActive = group.items.some(
-            (item) => pathname === item.href,
-          );
+          const groupActive = group.href
+            ? pathname === group.href
+            : group.items.some((item) => pathname === item.href);
 
           if (collapsed) {
-            return (
+            const iconClass = `flex items-center justify-center rounded-[4px] border p-2 ${
+              groupActive
+                ? "border-[#c6ebdc]/40 bg-[#1e3f35] text-white"
+                : "border-transparent text-white/80 hover:bg-white/5 hover:text-white"
+            }`;
+            const icon = (
+              <GroupIcon className="size-4 shrink-0" aria-hidden="true" />
+            );
+            // A single-page category opens its page; others open the menu.
+            return group.href ? (
+              <Link
+                key={group.title}
+                href={group.href}
+                title={group.title}
+                aria-label={group.title}
+                aria-current={groupActive ? "page" : undefined}
+                className={iconClass}
+              >
+                {icon}
+              </Link>
+            ) : (
               <button
                 key={group.title}
                 type="button"
@@ -83,14 +92,28 @@ export function AdminSidebar() {
                 title={group.title}
                 aria-label={group.title}
                 aria-expanded={false}
-                className={`flex items-center justify-center rounded-[4px] border p-2 ${
+                className={iconClass}
+              >
+                {icon}
+              </button>
+            );
+          }
+
+          if (group.href) {
+            return (
+              <Link
+                key={group.title}
+                href={group.href}
+                aria-current={groupActive ? "page" : undefined}
+                className={`flex items-center gap-2 rounded-[4px] border px-2.5 py-2 text-sm ${
                   groupActive
-                    ? "border-[#c6ebdc]/40 bg-[#1e3f35] text-white"
+                    ? "border-[#c6ebdc]/40 bg-[#1e3f35] font-semibold text-white"
                     : "border-transparent text-white/80 hover:bg-white/5 hover:text-white"
                 }`}
               >
                 <GroupIcon className="size-4 shrink-0" aria-hidden="true" />
-              </button>
+                {group.title}
+              </Link>
             );
           }
 

@@ -15,7 +15,7 @@ const LABEL =
 export function OverviewMobile() {
   return (
     <div className="flex flex-col gap-0 md:hidden">
-      <section className="flex flex-col gap-2 px-4 py-2">
+      <section className="flex flex-col gap-2 py-2">
         <div className="flex gap-1.5 overflow-x-auto">
           {PERIODS.map((period, index) => (
             <span
@@ -32,7 +32,7 @@ export function OverviewMobile() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3 px-4 pt-4">
+      <section className="flex flex-col gap-3 pt-4">
         <div
           className={`${CARD} flex flex-col gap-3 bg-[#052920] p-5 text-white`}
         >
@@ -74,7 +74,7 @@ export function OverviewMobile() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3 px-4 pt-5">
+      <section className="flex flex-col gap-3 pt-5">
         <div className={`${CARD} flex flex-col gap-3 p-4`}>
           <span className={LABEL}>Skladové kapacity</span>
           {MOBILE.warehouses.map((item) => (
@@ -112,7 +112,7 @@ export function OverviewMobile() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3 px-4 pt-5">
+      <section className="flex flex-col gap-3 pt-5">
         <div className={`${CARD} flex flex-col divide-y divide-[#e9e1dd]`}>
           <div className="p-4">
             <span className={LABEL}>Čeká na expedici</span>
@@ -157,7 +157,7 @@ export function OverviewMobile() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3 px-4 pt-5 pb-6">
+      <section className="flex flex-col gap-3 pt-5 pb-6">
         <div className={`${CARD} flex flex-col gap-3 p-4`}>
           <span className={LABEL}>Systémové integrace v provozu</span>
           {INTEGRATIONS.map((item) => (

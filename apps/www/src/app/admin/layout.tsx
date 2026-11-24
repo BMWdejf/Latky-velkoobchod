@@ -39,7 +39,7 @@ export default async function AdminLayout({
           flexibeeOk={warehouses.status === "ok"}
           databaseOk={settings.status === "ok"}
         />
-        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto p-0 md:p-8">
+        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto p-[7px] md:p-8">
           {children}
         </main>
         <AdminStickyBar />
