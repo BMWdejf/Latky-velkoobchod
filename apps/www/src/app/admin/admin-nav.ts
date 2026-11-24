@@ -14,14 +14,14 @@ export const ADMIN_NAV: AdminNavGroup[] = [
   {
     title: "Operativa B2B",
     items: [
-      { label: "Přehled", href: "/admin/prehled" },
+      { label: "Přehled", href: "/admin" },
       { label: "Katalog na webu", href: "/" },
     ],
   },
   {
     title: "Nastavení & řízení portálu",
     items: [
-      { label: "Zdroj skladu", href: "/admin" },
+      { label: "Zdroj skladu", href: "/admin/zdroj-skladu" },
       { label: "Pravidla zobrazení", href: "/admin/pravidla" },
     ],
   },

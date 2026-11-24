@@ -41,7 +41,7 @@ export default async function AdminLayout({
           databaseOk={settings.status === "ok"}
         />
         <AdminMobileNav />
-        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 md:p-6">
+        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto p-0 md:p-8">
           {children}
         </main>
         <AdminStickyBar />

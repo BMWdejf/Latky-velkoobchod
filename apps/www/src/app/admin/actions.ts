@@ -28,7 +28,7 @@ export const saveWarehouseAction = async (
     return unavailable(current.status);
   }
 
-  return save(warehouseId, current.data.rules, ["/admin"]);
+  return save(warehouseId, current.data.rules, ["/admin/zdroj-skladu"]);
 };
 
 /** Saves the rules and keeps the warehouse that is currently stored. */
