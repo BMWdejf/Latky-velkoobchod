@@ -23,13 +23,11 @@ export function AdminNavList({ onNavigate }: { onNavigate?: () => void }) {
               href={group.href}
               onClick={onNavigate}
               aria-current={active ? "page" : undefined}
-              className={`mt-2 flex items-center gap-2 rounded-[4px] border px-2.5 py-2 text-sm ${
-                active
-                  ? "border-[#c6ebdc]/40 bg-[#1e3f35] font-semibold text-white"
-                  : "border-transparent text-white/80 hover:bg-white/5 hover:text-white"
+              className={`flex items-center gap-2 rounded-[4px] px-2 pt-4 pb-2 text-[10px] font-bold uppercase tracking-[0.5px] text-white ${
+                active ? "bg-white/10" : "hover:bg-white/5"
               }`}
             >
-              <GroupIcon className="size-4 shrink-0" aria-hidden="true" />
+              <GroupIcon className="size-3.5 shrink-0" aria-hidden="true" />
               {group.title}
             </Link>
           );
