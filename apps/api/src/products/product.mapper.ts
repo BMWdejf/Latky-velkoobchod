@@ -44,6 +44,8 @@ export type Product = {
   weight: string | null;
   composition: string | null;
   ean: string | null;
+  /** Photo URL from the product attachments, or null. */
+  imageUrl: string | null;
   /** Minimum stock of the selected warehouse (stock card `minMJ`); null without a warehouse. */
   minStock: number | null;
 };
@@ -105,6 +107,7 @@ export const mapFlexibeeProduct = (row: FlexibeeProductRow): Product => {
     weight: toNullableString(row[FLEXIBEE_PRODUCT_FIELDS.weight]),
     composition: toNullableString(row[FLEXIBEE_PRODUCT_FIELDS.composition]),
     ean: toNullableString(row[FLEXIBEE_PRODUCT_FIELDS.ean]),
+    imageUrl: null,
     minStock: null,
   };
 };

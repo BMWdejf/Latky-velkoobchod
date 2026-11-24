@@ -8,6 +8,11 @@ import {
   type Product,
   toStockStatus,
 } from "./product.mapper";
+import {
+  FLEXIBEE_ATTACHMENT,
+  FLEXIBEE_ATTACHMENT_DETAIL,
+  toImageByProductId,
+} from "./product-images";
 import { matchesAllRules, type ProductRule } from "./product-rules";
 import {
   type StockEntry,
@@ -64,6 +69,7 @@ export class ProductsService {
     string,
     Cached<Map<string, StockEntry>>
   >();
+  private readonly imageCache = new Map<string, Cached<Map<string, string>>>();
   private readonly listCache = new Map<string, Cached<Product[]>>();
 
   constructor(
@@ -240,7 +246,33 @@ export class ProductsService {
       limit: "0",
     });
 
-    return rows.map(mapFlexibeeProduct);
+    return this.withImages(rows.map(mapFlexibeeProduct));
+  }
+
+  /** Adds the photo URL from the product attachments. */
+  private async withImages(products: Product[]): Promise<Product[]> {
+    const images = await this.productImages();
+    return products.map((product) => ({
+      ...product,
+      imageUrl: images.get(product.id) ?? null,
+    }));
+  }
+
+  /** Product id -> photo URL, from all attachments, cached like the other lists. */
+  private async productImages(): Promise<Map<string, string>> {
+    const cached = readCache(this.imageCache, "all");
+    if (cached) {
+      return cached;
+    }
+
+    const rows = await this.flexibee.list(FLEXIBEE_ATTACHMENT.entity, {
+      detail: FLEXIBEE_ATTACHMENT_DETAIL,
+      limit: "0",
+    });
+    const images = toImageByProductId(rows);
+    writeCache(this.imageCache, "all", images);
+
+    return images;
   }
 
   /** Only products that have a stock card in the selected warehouse. */
@@ -260,7 +292,7 @@ export class ProductsService {
       );
     }
 
-    return rows.map(mapFlexibeeProduct).map((product) => {
+    const products = rows.map(mapFlexibeeProduct).map((product) => {
       const entry = stockByProduct.get(product.id);
       const stock = entry?.quantity ?? 0;
       return {
@@ -270,6 +302,8 @@ export class ProductsService {
         minStock: entry?.minQuantity ?? null,
       };
     });
+
+    return this.withImages(products);
   }
 
   /** Product id -> quantity on hand in one warehouse. */

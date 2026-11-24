@@ -31,6 +31,7 @@ describe("mapFlexibeeProduct", () => {
       weight: "240 g/m²",
       composition: "100% Bavlna",
       ean: "8594182910121",
+      imageUrl: null,
       minStock: null,
     });
   });

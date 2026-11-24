@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type {
   AdminProduct,
@@ -136,9 +137,21 @@ function ProductCard({ product }: { product: AdminProduct }) {
   return (
     <article className={`${CARD} flex flex-col gap-3 p-4`}>
       <div className="flex items-start justify-between gap-2">
-        <span className="flex h-7 min-w-7 items-center justify-center rounded-[4px] border border-[#e2ddd5] bg-[#f4ece8] px-1.5 text-[10px] font-bold text-[#57534e]">
-          {product.group ?? "–"}
-        </span>
+        {product.imageUrl ? (
+          // eslint-disable-next-line /next/no-img-element
+          <Image
+            src={product.imageUrl}
+            alt=""
+            width={56}
+            height={56}
+            unoptimized
+            className="size-14 rounded-[4px] border border-[#e2ddd5] object-cover"
+          />
+        ) : (
+          <span className="flex h-7 min-w-7 items-center justify-center rounded-[4px] border border-[#e2ddd5] bg-[#f4ece8] px-1.5 text-[10px] font-bold text-[#57534e]">
+            {product.group ?? "–"}
+          </span>
+        )}
         <div className="flex flex-wrap justify-end gap-1">
           <span className="rounded-[2px] bg-[#f4f1ea] px-1.5 py-0.5 text-[10px] font-bold text-[#1c1917]">
             {STOCK_STATUS_LABEL[product.stockStatus]}
