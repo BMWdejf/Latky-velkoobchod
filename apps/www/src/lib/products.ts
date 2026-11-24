@@ -14,6 +14,8 @@ export type Product = {
   width: string | null;
   weight: string | null;
   composition: string | null;
+  /** Photo URL, or null when the product has no photo. */
+  imageUrl: string | null;
 };
 
 export type ProductPage = {
