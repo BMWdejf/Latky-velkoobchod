@@ -1,23 +1,20 @@
 "use client";
 
 import { useActionState } from "react";
-import type { ProductRule, Warehouse } from "@/lib/admin-api";
-import { type SaveWarehouseState, saveWarehouseAction } from "./actions";
-import { RulesEditor } from "./rules-editor";
-import { WAREHOUSE_FORM_ID } from "./warehouse-form-id";
+import type { Warehouse } from "@/lib/admin-api";
+import { type SaveState, saveWarehouseAction } from "./actions";
+import { WAREHOUSE_FORM_ID } from "./form-ids";
 
-const initialState: SaveWarehouseState = { status: "idle" };
+const initialState: SaveState = { status: "idle" };
 
 type WarehouseFormProps = {
   warehouses: Warehouse[];
   currentWarehouseId: string | null;
-  currentRules: ProductRule[];
 };
 
 export function WarehouseForm({
   warehouses,
   currentWarehouseId,
-  currentRules,
 }: WarehouseFormProps) {
   const [state, formAction, isPending] = useActionState(
     saveWarehouseAction,
@@ -28,14 +25,14 @@ export function WarehouseForm({
     <form
       id={WAREHOUSE_FORM_ID}
       action={formAction}
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-4 rounded-[4px] border border-[#e2ddd5] bg-white p-4"
     >
       <label className="flex flex-col gap-1 text-sm font-medium">
         Sklad
         <select
           name="warehouseId"
           defaultValue={currentWarehouseId ?? ""}
-          className="rounded-md border bg-background px-3 py-2"
+          className="rounded-[4px] border border-[#e2ddd5] bg-white px-3 py-2"
         >
           <option value="">Globální zásoba (výchozí)</option>
           {warehouses.map((warehouse) => (
@@ -45,8 +42,6 @@ export function WarehouseForm({
           ))}
         </select>
       </label>
-
-      <RulesEditor initialRules={currentRules} />
 
       <button
         type="submit"
