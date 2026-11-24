@@ -151,3 +151,21 @@ describe("warehouse stock cache", () => {
     expect(cardCalls).toHaveLength(1);
   });
 });
+
+describe("ProductsService summary", () => {
+  it("counts visible products, low stock and groups", async () => {
+    const { service } = await setup();
+
+    const summary = await service.summary();
+
+    expect(summary).toMatchObject({
+      warehouseId: "38",
+      total: 2,
+      lowStock: 2,
+      outOfStock: 0,
+      ruleCount: 0,
+    });
+    expect(summary.criticalItems.map((item) => item.stock)).toEqual([5, 12]);
+    expect(summary.groups.map((group) => group.count)).toEqual([1, 1]);
+  });
+});

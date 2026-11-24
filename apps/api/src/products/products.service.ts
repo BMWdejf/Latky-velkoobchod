@@ -3,6 +3,7 @@ import { FlexibeeClient } from "../flexibee/flexibee.client";
 import { SettingsService } from "../settings/settings.service";
 import {
   FLEXIBEE_PRODUCT_DETAIL,
+  LOW_STOCK_THRESHOLD,
   mapFlexibeeProduct,
   type Product,
   toStockStatus,
@@ -33,6 +34,21 @@ export type ProductPage = {
 
 type Cached<T> = { expiresAt: number; value: T };
 
+export type ProductsSummary = {
+  warehouseId: string | null;
+  ruleCount: number;
+  total: number;
+  lowStock: number;
+  outOfStock: number;
+  criticalItems: Array<{
+    id: string;
+    sku: string;
+    name: string;
+    stock: number;
+  }>;
+  groups: Array<{ name: string; count: number; share: number }>;
+};
+
 @Injectable()
 export class ProductsService {
   private readonly stockCache = new Map<string, Cached<Map<string, number>>>();
@@ -54,6 +70,48 @@ export class ProductsService {
       items: visible.slice(start, start + limit),
       limit,
       start,
+    };
+  }
+
+  /** Counts and examples for the admin overview, from the same visible set. */
+  async summary(): Promise<ProductsSummary> {
+    const { warehouseId, rules } = await this.settings.get();
+    const visible = await this.visibleProducts(warehouseId, rules);
+
+    const lowStock = visible
+      .filter(
+        (product) => product.stock > 0 && product.stock <= LOW_STOCK_THRESHOLD,
+      )
+      .sort((a, b) => a.stock - b.stock);
+    const outOfStock = visible.filter((product) => product.stock <= 0).length;
+
+    const byGroup = new Map<string, number>();
+    for (const product of visible) {
+      const group = product.group ?? "Bez skupiny";
+      byGroup.set(group, (byGroup.get(group) ?? 0) + 1);
+    }
+    const groups = [...byGroup.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([name, count]) => ({
+        name,
+        count,
+        share: visible.length === 0 ? 0 : count / visible.length,
+      }));
+
+    return {
+      warehouseId,
+      ruleCount: rules.length,
+      total: visible.length,
+      lowStock: lowStock.length,
+      outOfStock,
+      criticalItems: lowStock.slice(0, 5).map((product) => ({
+        id: product.id,
+        sku: product.sku,
+        name: product.name,
+        stock: product.stock,
+      })),
+      groups,
     };
   }
 
