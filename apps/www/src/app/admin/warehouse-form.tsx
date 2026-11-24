@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import type { ProductRule, Warehouse } from "@/lib/admin-api";
 import { type SaveWarehouseState, saveWarehouseAction } from "./actions";
 import { RulesEditor } from "./rules-editor";
+import { WAREHOUSE_FORM_ID } from "./warehouse-form-id";
 
 const initialState: SaveWarehouseState = { status: "idle" };
 
@@ -24,7 +25,11 @@ export function WarehouseForm({
   );
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form
+      id={WAREHOUSE_FORM_ID}
+      action={formAction}
+      className="flex flex-col gap-4"
+    >
       <label className="flex flex-col gap-1 text-sm font-medium">
         Sklad
         <select
@@ -46,7 +51,7 @@ export function WarehouseForm({
       <button
         type="submit"
         disabled={isPending}
-        className="self-start rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+        className="self-start rounded-[4px] bg-[#1e3f35] px-4 py-2 text-sm font-medium text-white max-md:hidden disabled:opacity-50"
       >
         {isPending ? "Ukládám…" : "Uložit"}
       </button>
