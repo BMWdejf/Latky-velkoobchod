@@ -2,37 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ADMIN_NAV, type AdminNavItem } from "../admin-nav";
 
-type NavItem = {
-  label: string;
-  href: string;
-  activeWhen: (path: string) => boolean;
-};
-
-const OPERATIVE: NavItem[] = [
-  { label: "Katalog na webu", href: "/", activeWhen: () => false },
-];
-
-const SETTINGS: NavItem[] = [
-  {
-    label: "Zdroj skladu",
-    href: "/admin",
-    activeWhen: (path) => path === "/admin",
-  },
-  {
-    label: "Pravidla zobrazení",
-    href: "/admin#pravidla",
-    activeWhen: () => false,
-  },
-];
-
+/** Desktop sidebar from the Figma design. Hidden on small screens. */
 export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col border-r border-[#1e3f35] bg-[#0e241e] text-white">
+    <aside className="hidden h-full w-60 shrink-0 flex-col border-r border-[#1e3f35] bg-[#0e241e] text-white md:flex">
       <div className="flex items-center gap-2.5 p-4">
-        <div className="flex size-8 items-center justify-center rounded-[4px] bg-[#c6ebdc] text-[#002018] text-xs font-bold">
+        <div className="flex size-8 items-center justify-center rounded-[4px] bg-[#c6ebdc] text-xs font-bold text-[#002018]">
           LV
         </div>
         <div className="flex flex-col leading-tight">
@@ -51,12 +30,30 @@ export function AdminSidebar() {
       </div>
 
       <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-2.5">
-        <Section title="Operativa B2B" items={OPERATIVE} pathname={pathname} />
-        <Section
-          title="Nastavení & řízení portálu"
-          items={SETTINGS}
-          pathname={pathname}
-        />
+        {ADMIN_NAV.map((section) => (
+          <div key={section.title} className="flex flex-col gap-1">
+            <span className="px-2 pt-4 pb-2 text-[10px] font-bold uppercase tracking-[0.5px] text-white">
+              {section.title}
+            </span>
+            {section.items.map((item) => {
+              const active = isActive(item, pathname);
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={
+                    active
+                      ? "flex items-center gap-2.5 rounded-[4px] border border-[#c6ebdc]/40 bg-[#1e3f35] px-2.5 py-2 text-sm font-semibold text-white"
+                      : "flex items-center gap-2.5 rounded-[4px] px-2.5 py-1.5 text-sm text-white/80 hover:bg-white/5 hover:text-white"
+                  }
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       <div className="flex flex-col gap-1.5 border-t border-white/10 bg-[#0a1b16] p-3 text-[10px] text-white/70">
@@ -66,35 +63,9 @@ export function AdminSidebar() {
   );
 }
 
-const Section = ({
-  title,
-  items,
-  pathname,
-}: {
-  title: string;
-  items: NavItem[];
-  pathname: string;
-}) => (
-  <div className="flex flex-col gap-1">
-    <span className="px-2 pt-4 pb-2 text-[10px] font-bold uppercase tracking-[0.5px] text-white">
-      {title}
-    </span>
-    {items.map((item) => {
-      const active = item.activeWhen(pathname);
-      return (
-        <Link
-          key={item.label}
-          href={item.href}
-          aria-current={active ? "page" : undefined}
-          className={
-            active
-              ? "flex items-center gap-2.5 rounded-[4px] border border-[#c6ebdc]/40 bg-[#1e3f35] px-2.5 py-2 text-sm font-semibold text-white"
-              : "flex items-center gap-2.5 rounded-[4px] px-2.5 py-1.5 text-sm text-white/80 hover:bg-white/5 hover:text-white"
-          }
-        >
-          {item.label}
-        </Link>
-      );
-    })}
-  </div>
-);
+/**
+ * Items that point at an anchor are never marked active: the anchor is not
+ * part of the pathname, so the state would not update when scrolling.
+ */
+export const isActive = (item: AdminNavItem, pathname: string): boolean =>
+  !item.hash && pathname === item.path;
