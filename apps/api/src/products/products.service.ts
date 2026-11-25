@@ -42,8 +42,12 @@ export type ListProductsOptions = {
   start?: number;
 };
 
-/** Product as the public list returns it: admin-only fields are left out. */
-export type PublicProduct = Omit<Product, "minStock">;
+/**
+ * Product as the public list returns it: admin-only fields and the internal
+ * Flexibee labels are left out. Facets are computed on the server, so the
+ * client does not need the labels.
+ */
+export type PublicProduct = Omit<Product, "minStock" | "labels">;
 
 export type ProductPage = {
   items: PublicProduct[];
@@ -55,9 +59,13 @@ export type PublicSearchResult = Omit<SearchResult, "items"> & {
   items: PublicProduct[];
 };
 
-/** Strips admin-only fields and adds the stock text chosen by the admin rules. */
+/** Strips admin-only fields and labels, and adds the stock text chosen by the admin rules. */
 const toPublic = (product: Product, rules: ProductRule[]): PublicProduct => {
-  const { minStock: _adminOnly, ...publicFields } = product;
+  const {
+    minStock: _adminOnly,
+    labels: _internalLabels,
+    ...publicFields
+  } = product;
   return { ...publicFields, notice: noticeFor(product, rules) };
 };
 
