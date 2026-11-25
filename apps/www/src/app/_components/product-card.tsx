@@ -44,7 +44,7 @@ export function ProductCard({ product }: { product: Product }) {
         <span
           className={`rounded-sm px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] ${stockClasses[product.stockStatus]}`}
         >
-          {stockLabel(product)}
+          {product.notice ?? stockLabel(product)}
         </span>
         {product.weight ? (
           <span className="absolute right-3 top-3 rounded-sm bg-card px-2 py-1 text-[11px] font-semibold text-foreground">

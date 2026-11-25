@@ -13,10 +13,10 @@ const navigation = [
 ];
 
 /**
- * Search and cart are placeholders for now: they are rendered but disabled,
- * so the layout matches the design without pretending to be functional.
+ * Search is a plain GET form to /hledat, so it works without JavaScript.
+ * Cart and profile are placeholders: they are rendered but disabled.
  */
-export function SiteHeader() {
+export function SiteHeader({ query = "" }: { query?: string }) {
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-card/95 backdrop-blur-sm">
       <div className="mx-auto flex max-w-[1280px] items-center gap-6 px-4 py-[13px] md:px-6 lg:px-8">
@@ -33,24 +33,28 @@ export function SiteHeader() {
           <span className="whitespace-nowrap">Látky Velkoobchod</span>
         </a>
 
-        <label className="relative hidden flex-1 md:block">
-          <span className="sr-only">Hledat podle názvu, SKU nebo EAN</span>
-          <Search
-            aria-hidden="true"
-            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-muted"
-          />
-          <input
-            type="search"
-            disabled
-            placeholder="Hledat podle názvu, SKU nebo EAN…"
-            className="h-[38px] w-full rounded-sm border border-hairline bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-ink-muted disabled:cursor-not-allowed"
-          />
-        </label>
+        <form
+          action="/hledat"
+          method="get"
+          className="relative hidden flex-1 md:block"
+        >
+          <label className="block">
+            <span className="sr-only">Hledat podle názvu, SKU nebo EAN</span>
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-muted"
+            />
+            <input
+              type="search"
+              name="q"
+              defaultValue={query}
+              placeholder="Hledat podle názvu, SKU nebo EAN…"
+              className="h-[38px] w-full rounded-sm border border-hairline bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-ink-muted"
+            />
+          </label>
+        </form>
 
         <div className="ml-auto flex items-center gap-2">
-          <span className="hidden rounded-sm bg-sage px-2.5 py-1 text-xs font-semibold text-brand lg:inline-block">
-            Partner Gold (-15%)
-          </span>
           <button
             type="button"
             disabled

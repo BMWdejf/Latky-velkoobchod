@@ -18,6 +18,11 @@ export const FLEXIBEE_PRODUCT_FIELDS = {
   composition: "slozeni",
   /** EAN barcode, verified on the instance. */
   ean: "eanKod",
+  /**
+   * Labels (štítky) of the product: fabric type and certifications.
+   * ASSUMPTION: the field name must be checked on the real Flexibee instance.
+   */
+  labels: "stitky",
 } as const;
 
 export const FLEXIBEE_PRODUCT_DETAIL = `custom:${Object.values(
@@ -44,8 +49,12 @@ export type Product = {
   weight: string | null;
   composition: string | null;
   ean: string | null;
+  /** Stock text from the admin stock rules (e.g. "Očekáváme naskladnění"), or null. */
+  notice: string | null;
   /** Photo URL from the product attachments, or null. */
   imageUrl: string | null;
+  /** Labels from Flexibee: fabric type and certifications (filter facets). */
+  labels: string[];
   /** Minimum stock of the selected warehouse (stock card `minMJ`); null without a warehouse. */
   minStock: number | null;
 };
@@ -79,6 +88,28 @@ export const toGroupCode = (value: unknown): string | null => {
   return text ? text.replace(/^code:/, "") : null;
 };
 
+/** Flexibee returns labels as a list of names or as one comma-separated text. */
+export const toLabels = (value: unknown): string[] => {
+  const items = Array.isArray(value) ? value : String(value ?? "").split(",");
+  return items
+    .map((item) => toNullableString(item))
+    .filter((item): item is string => item !== null);
+};
+
+/**
+ * Gramáž and šířka role are Flexibee labels named like `gramaz_240g` and
+ * `sire_160cm`. The number in the label is the value shown and filtered on.
+ */
+export const GSM_LABEL = /^gramaz_(\d+(?:[.,]\d+)?)g$/i;
+export const WIDTH_LABEL = /^sire_(\d+(?:[.,]\d+)?)cm$/i;
+
+/** Numbers taken from the labels that match the pattern, in label order. */
+export const labelNumbers = (labels: string[], pattern: RegExp): number[] =>
+  labels
+    .map((label) => label.match(pattern))
+    .filter((match): match is RegExpMatchArray => match !== null)
+    .map((match) => Number((match[1] ?? "").replace(",", ".")));
+
 export const toStockStatus = (stock: number): StockStatus => {
   if (stock <= 0) {
     return "out_of_stock";
@@ -91,6 +122,10 @@ export const toStockStatus = (stock: number): StockStatus => {
 
 export const mapFlexibeeProduct = (row: FlexibeeProductRow): Product => {
   const stock = toNumber(row[FLEXIBEE_PRODUCT_FIELDS.stock]);
+  const labels = toLabels(row[FLEXIBEE_PRODUCT_FIELDS.labels]);
+  // The labels win for display, so the card and the filters show the same values.
+  const [gsm] = labelNumbers(labels, GSM_LABEL);
+  const [widthCm] = labelNumbers(labels, WIDTH_LABEL);
 
   return {
     id: String(row[FLEXIBEE_PRODUCT_FIELDS.id] ?? ""),
@@ -103,11 +138,19 @@ export const mapFlexibeeProduct = (row: FlexibeeProductRow): Product => {
     stockStatus: toStockStatus(stock),
     group: toGroupCode(row[FLEXIBEE_PRODUCT_FIELDS.group]),
     minOrder: toNullableNumber(row[FLEXIBEE_PRODUCT_FIELDS.minOrder]),
-    width: toNullableString(row[FLEXIBEE_PRODUCT_FIELDS.width]),
-    weight: toNullableString(row[FLEXIBEE_PRODUCT_FIELDS.weight]),
+    width:
+      widthCm !== undefined
+        ? `${widthCm} cm`
+        : toNullableString(row[FLEXIBEE_PRODUCT_FIELDS.width]),
+    weight:
+      gsm !== undefined
+        ? `${gsm} g/m²`
+        : toNullableString(row[FLEXIBEE_PRODUCT_FIELDS.weight]),
     composition: toNullableString(row[FLEXIBEE_PRODUCT_FIELDS.composition]),
     ean: toNullableString(row[FLEXIBEE_PRODUCT_FIELDS.ean]),
+    labels,
     imageUrl: null,
     minStock: null,
+    notice: null,
   };
 };

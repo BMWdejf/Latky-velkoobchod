@@ -13,7 +13,12 @@ import {
   FLEXIBEE_ATTACHMENT_DETAIL,
   toImageByProductId,
 } from "./product-images";
-import { matchesAllRules, type ProductRule } from "./product-rules";
+import { matchesAllRules, noticeFor, type ProductRule } from "./product-rules";
+import {
+  type SearchQuery,
+  type SearchResult,
+  searchProducts,
+} from "./product-search";
 import {
   type StockEntry,
   stockCardsPath,
@@ -44,6 +49,16 @@ export type ProductPage = {
   items: PublicProduct[];
   limit: number;
   start: number;
+};
+
+export type PublicSearchResult = Omit<SearchResult, "items"> & {
+  items: PublicProduct[];
+};
+
+/** Strips admin-only fields and adds the stock text chosen by the admin rules. */
+const toPublic = (product: Product, rules: ProductRule[]): PublicProduct => {
+  const { minStock: _adminOnly, ...publicFields } = product;
+  return { ...publicFields, notice: noticeFor(product, rules) };
 };
 
 type Cached<T> = { expiresAt: number; value: T };
@@ -87,9 +102,21 @@ export class ProductsService {
     return {
       items: visible
         .slice(start, start + limit)
-        .map(({ minStock: _adminOnly, ...product }) => product),
+        .map((product) => toPublic(product, rules)),
       limit,
       start,
+    };
+  }
+
+  /** Public search over the visible products: filters, facet counts and paging. */
+  async search(query: SearchQuery): Promise<PublicSearchResult> {
+    const { warehouseId, rules } = await this.settings.get();
+    const visible = await this.visibleProducts(warehouseId, rules);
+    const result = searchProducts(visible, query);
+
+    return {
+      ...result,
+      items: result.items.map((product) => toPublic(product, rules)),
     };
   }
 

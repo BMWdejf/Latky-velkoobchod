@@ -9,15 +9,6 @@ export function Hero() {
     <section className="px-4 pb-4 pt-6 md:px-6 lg:px-8">
       <div className="mx-auto grid max-w-[1216px] overflow-hidden rounded-[16px] bg-brand text-primary-foreground lg:h-[488px] lg:grid-cols-[729px_1fr]">
         <div className="flex flex-col justify-center gap-5 p-8 md:p-10 lg:p-14">
-          <div className="flex flex-wrap gap-2">
-            <span className="rounded-sm bg-primary-foreground px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] text-brand">
-              Partner Gold
-            </span>
-            <span className="rounded-sm border border-white/30 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em]">
-              -15% sleva pro velkoobchod
-            </span>
-          </div>
-
           <h1 className="font-serif text-[28px] leading-[34px] tracking-tight md:text-[36px] md:leading-[44px]">
             Velkoobchodní dodávky
             <br className="hidden md:inline" /> prémiových textilií &amp;

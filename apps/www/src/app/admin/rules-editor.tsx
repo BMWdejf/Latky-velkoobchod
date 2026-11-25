@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import type { ProductRule, RuleField, RuleOperator } from "@/lib/admin-api";
+import type {
+  ProductRule,
+  RuleAction,
+  RuleField,
+  RuleOperator,
+} from "@/lib/admin-api";
 
 const FIELD_LABELS: Record<RuleField, string> = {
   stock: "Zásoba (ks)",
@@ -31,15 +36,32 @@ const OPERATOR_LABELS: Record<RuleOperator, string> = {
   notContains: "neobsahuje",
 };
 
-type Row = { field: RuleField; op: RuleOperator; value: string };
+type Row = {
+  field: RuleField;
+  op: RuleOperator;
+  value: string;
+  action: RuleAction;
+  text: string;
+};
 
-const emptyRow = (): Row => ({ field: "stock", op: "gt", value: "0" });
+const emptyRow = (): Row => ({
+  field: "stock",
+  op: "gt",
+  value: "0",
+  action: "hide",
+  text: "",
+});
 
 const fromRule = (rule: ProductRule): Row => ({
   field: rule.field,
   op: rule.op,
   value: Array.isArray(rule.value) ? rule.value.join(", ") : String(rule.value),
+  action: rule.action ?? "hide",
+  text: rule.text ?? "",
 });
+
+/** Text rules are allowed on stock only; other fields always hide. */
+const ACTIONS_ALLOWED_FOR: RuleField = "stock";
 
 /** Keeps the rows as JSON in a hidden input so the server action receives them. */
 export function RulesEditor({ initialRules }: { initialRules: ProductRule[] }) {
@@ -55,6 +77,9 @@ export function RulesEditor({ initialRules }: { initialRules: ProductRule[] }) {
         // Keep the operator valid for the chosen field.
         if (!OPERATORS_BY_FIELD[next.field].includes(next.op)) {
           next.op = OPERATORS_BY_FIELD[next.field][0] as RuleOperator;
+        }
+        if (next.field !== ACTIONS_ALLOWED_FOR) {
+          next.action = "hide";
         }
         return next;
       }),
@@ -73,6 +98,9 @@ export function RulesEditor({ initialRules }: { initialRules: ProductRule[] }) {
                 .map((code) => code.trim())
                 .filter(Boolean)
             : row.value.trim(),
+      ...(row.action === "text"
+        ? { action: "text", text: row.text.trim() }
+        : {}),
     })),
   );
 
@@ -143,6 +171,28 @@ export function RulesEditor({ initialRules }: { initialRules: ProductRule[] }) {
             }
             className="min-w-40 flex-1 rounded-md border bg-background px-2 py-1 text-sm"
           />
+          {row.field === ACTIONS_ALLOWED_FOR ? (
+            <select
+              aria-label="Akce"
+              value={row.action}
+              onChange={(event) =>
+                update(index, { action: event.target.value as RuleAction })
+              }
+              className="rounded-md border bg-background px-2 py-1 text-sm"
+            >
+              <option value="hide">Skrýt produkt, když neplatí</option>
+              <option value="text">Zobrazit text</option>
+            </select>
+          ) : null}
+          {row.action === "text" ? (
+            <input
+              aria-label="Text na webu"
+              value={row.text}
+              onChange={(event) => update(index, { text: event.target.value })}
+              placeholder="Např. Očekáváme naskladnění"
+              className="min-w-56 flex-1 rounded-md border bg-background px-2 py-1 text-sm"
+            />
+          ) : null}
           <button
             type="button"
             onClick={() =>

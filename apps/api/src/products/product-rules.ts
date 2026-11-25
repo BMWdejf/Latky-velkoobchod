@@ -27,7 +27,14 @@ export type RuleOperator =
   | "contains"
   | "notContains";
 
-export type ProductRule =
+/**
+ * `hide` (default): the product shows only while the rule matches.
+ * `text`: when the rule matches, the product shows the rule's text instead of
+ * the stock label. Text rules are allowed on `stock` only.
+ */
+export type RuleAction = "hide" | "text";
+
+type Condition =
   | {
       field: "stock" | "price";
       op: "gt" | "gte" | "lt" | "lte" | "eq";
@@ -40,6 +47,11 @@ export type ProductRule =
       op: "eq" | "contains" | "notContains";
       value: string;
     };
+
+export type ProductRule = Condition & {
+  action?: RuleAction;
+  text?: string;
+};
 
 export const MAX_RULES = 20;
 const MAX_TEXT_LENGTH = 200;
@@ -104,18 +116,40 @@ export const parseRules = (input: unknown): ProductRule[] => {
       fail(`Operator ${String(op)} is not allowed for ${String(field)}`);
     }
 
-    switch (field) {
-      case "stock":
-      case "price":
-        return { field, op, value: parseNumber(rule.value) } as ProductRule;
-      case "group":
-        return op === "eq"
-          ? { field, op, value: parseText(rule.value) }
-          : { field, op: op as "in" | "notIn", value: parseList(rule.value) };
-      default:
-        return { field, op, value: parseText(rule.value) } as ProductRule;
+    const condition = parseCondition(
+      field as RuleField,
+      op as string,
+      rule.value,
+    );
+    if (rule.action === "text") {
+      if (field !== "stock") {
+        fail("Text rules are allowed only for stock");
+      }
+      return { ...condition, action: "text", text: parseText(rule.text) };
     }
+    if (rule.action !== undefined && rule.action !== "hide") {
+      fail(`Unknown rule action: ${String(rule.action)}`);
+    }
+    return condition;
   });
+};
+
+const parseCondition = (
+  field: RuleField,
+  op: string,
+  value: unknown,
+): ProductRule => {
+  switch (field) {
+    case "stock":
+    case "price":
+      return { field, op, value: parseNumber(value) } as ProductRule;
+    case "group":
+      return op === "eq"
+        ? { field, op, value: parseText(value) }
+        : { field, op: op as "in" | "notIn", value: parseList(value) };
+    default:
+      return { field, op, value: parseText(value) } as ProductRule;
+  }
 };
 
 const compareNumber = (
@@ -169,7 +203,23 @@ export const matchesRule = (product: Product, rule: ProductRule): boolean => {
   }
 };
 
+/** Rules with action `hide`: every one must match for the product to show. */
 export const matchesAllRules = (
   product: Product,
   rules: ProductRule[],
-): boolean => rules.every((rule) => matchesRule(product, rule));
+): boolean =>
+  rules
+    .filter((rule) => rule.action !== "text")
+    .every((rule) => matchesRule(product, rule));
+
+/** Text of the first text rule that matches the product (rules are ordered), or null. */
+export const noticeFor = (
+  product: Product,
+  rules: ProductRule[],
+): string | null =>
+  rules.find(
+    (rule) =>
+      rule.action === "text" &&
+      rule.text !== undefined &&
+      matchesRule(product, rule),
+  )?.text ?? null;
