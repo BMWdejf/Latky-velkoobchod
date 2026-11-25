@@ -20,13 +20,17 @@ export function SearchSortBar({
   return (
     <div className="flex flex-col gap-3 border-b border-hairline pb-4 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm text-ink-muted">Zobrazeno {total} výsledků</p>
-      <form action="/hledat" method="get" className="flex items-center gap-2">
-        <label className="flex items-center gap-2 text-sm text-foreground">
-          <span className="font-semibold">Řadit:</span>
+      <form
+        action="/hledat"
+        method="get"
+        className="flex w-full items-center gap-2 sm:w-auto"
+      >
+        <label className="flex min-w-0 flex-1 items-center gap-2 text-sm text-foreground sm:flex-none">
+          <span className="shrink-0 font-semibold">Řadit:</span>
           <select
             name="sort"
             defaultValue={state.sort || "relevance"}
-            className="h-9 rounded-sm border border-hairline bg-background px-2 text-sm"
+            className="h-9 min-w-0 flex-1 rounded-sm border border-hairline bg-background px-2 text-sm sm:flex-none"
           >
             {SORT_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -38,7 +42,7 @@ export function SearchSortBar({
         <HiddenStateInputs state={state} omit={["sort", "page"]} />
         <button
           type="submit"
-          className="h-9 rounded-sm border border-brand px-3 text-sm font-semibold text-brand"
+          className="h-9 shrink-0 rounded-sm border border-brand px-3 text-sm font-semibold text-brand"
         >
           Použít
         </button>

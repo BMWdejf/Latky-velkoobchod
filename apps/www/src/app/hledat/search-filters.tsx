@@ -128,7 +128,7 @@ export function SearchFilters({
   return (
     <aside
       aria-label="Filtry"
-      className="flex flex-col gap-5 rounded-sm border border-hairline bg-card p-5"
+      className="flex min-w-0 flex-col gap-5 rounded-sm border border-hairline bg-card p-5"
     >
       <div className="flex items-center justify-between">
         <h2 className="font-serif text-lg text-foreground">Filtry</h2>
@@ -177,8 +177,8 @@ export function SearchFilters({
         <p className="text-sm font-semibold text-foreground">
           Cena bez DPH (Kč/m)
         </p>
-        <div className="flex items-center gap-2">
-          <label className="flex flex-1 flex-col gap-1 text-xs text-ink-muted">
+        <div className="grid grid-cols-2 gap-2">
+          <label className="flex min-w-0 flex-col gap-1 text-xs text-ink-muted">
             Od
             <input
               type="number"
@@ -188,10 +188,10 @@ export function SearchFilters({
               placeholder={
                 facets.price ? String(Math.floor(facets.price.min)) : ""
               }
-              className="h-9 rounded-sm border border-hairline bg-background px-2 text-sm text-foreground"
+              className="h-9 w-full min-w-0 rounded-sm border border-hairline bg-background px-2 text-sm text-foreground"
             />
           </label>
-          <label className="flex flex-1 flex-col gap-1 text-xs text-ink-muted">
+          <label className="flex min-w-0 flex-col gap-1 text-xs text-ink-muted">
             Do
             <input
               type="number"
@@ -201,7 +201,7 @@ export function SearchFilters({
               placeholder={
                 facets.price ? String(Math.ceil(facets.price.max)) : ""
               }
-              className="h-9 rounded-sm border border-hairline bg-background px-2 text-sm text-foreground"
+              className="h-9 w-full min-w-0 rounded-sm border border-hairline bg-background px-2 text-sm text-foreground"
             />
           </label>
         </div>
