@@ -33,6 +33,8 @@ describe("mapFlexibeeProduct", () => {
       ean: "8594182910121",
       imageUrl: null,
       minStock: null,
+      labels: [],
+      notice: null,
     });
   });
 
@@ -67,5 +69,35 @@ describe("toStockStatus", () => {
     [101, "in_stock"],
   ] as const)("maps stock %i to %s", (stock, status) => {
     expect(toStockStatus(stock)).toBe(status);
+  });
+});
+
+describe("mapFlexibeeProduct label values", () => {
+  it("shows gramáž and šířka from the gramaz_ and sire_ labels", () => {
+    const product = mapFlexibeeProduct({
+      id: 5,
+      kod: "TEP-005",
+      nazev: "Teplákovina",
+      stitky: ["gramaz_240g", "sire_160cm", "Počesaná"],
+      gramaz: "999",
+      sirka: "999",
+    });
+
+    expect(product.weight).toBe("240 g/m²");
+    expect(product.width).toBe("160 cm");
+    expect(product.labels).toEqual(["gramaz_240g", "sire_160cm", "Počesaná"]);
+  });
+
+  it("falls back to the field values when no label is set", () => {
+    const product = mapFlexibeeProduct({
+      id: 6,
+      kod: "TEP-006",
+      nazev: "Úplet",
+      gramaz: "320",
+      sirka: "180",
+    });
+
+    expect(product.weight).toBe("320");
+    expect(product.width).toBe("180");
   });
 });

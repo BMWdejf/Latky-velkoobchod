@@ -19,11 +19,16 @@ export type RuleOperator =
   | "contains"
   | "notContains";
 
+export type RuleAction = "hide" | "text";
+
 /** One condition. The API validates the exact field/operator/value combinations. */
 export type ProductRule = {
   field: RuleField;
   op: RuleOperator;
   value: string | number | string[];
+  /** `text` shows `text` on the product instead of hiding it (stock only). */
+  action?: RuleAction;
+  text?: string;
 };
 
 export type AppSettings = {

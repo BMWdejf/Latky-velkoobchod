@@ -1,6 +1,6 @@
 import { BadRequestException } from "@nestjs/common";
 import type { Product } from "./product.mapper";
-import { matchesAllRules, parseRules } from "./product-rules";
+import { matchesAllRules, noticeFor, parseRules } from "./product-rules";
 
 const product: Product = {
   id: "7",
@@ -19,6 +19,8 @@ const product: Product = {
   ean: null,
   imageUrl: null,
   minStock: null,
+  labels: [],
+  notice: null,
 };
 
 describe("parseRules", () => {
@@ -82,5 +84,34 @@ describe("matchesAllRules", () => {
 
   it("shows everything when there are no rules", () => {
     expect(matchesAllRules(product, [])).toBe(true);
+  });
+});
+
+describe("text rules", () => {
+  it("keeps text rules out of the hide check and returns the first matching text", () => {
+    const rules = parseRules([
+      { field: "stock", op: "eq", value: 0, action: "text", text: "Vyprodáno" },
+      { field: "stock", op: "gt", value: 1, action: "text", text: "Skladem" },
+      { field: "stock", op: "gt", value: 0 },
+    ]);
+
+    expect(matchesAllRules({ ...product, stock: 12 }, rules)).toBe(true);
+    expect(noticeFor({ ...product, stock: 0 }, rules)).toBe("Vyprodáno");
+    expect(noticeFor({ ...product, stock: 12 }, rules)).toBe("Skladem");
+    expect(noticeFor({ ...product, stock: 1 }, rules)).toBeNull();
+  });
+
+  it("rejects a text rule on a field other than stock", () => {
+    expect(() =>
+      parseRules([
+        {
+          field: "group",
+          op: "eq",
+          value: "TEXTIL",
+          action: "text",
+          text: "x",
+        },
+      ]),
+    ).toThrow(BadRequestException);
   });
 });

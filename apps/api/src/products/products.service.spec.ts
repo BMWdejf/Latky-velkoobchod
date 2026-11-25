@@ -92,6 +92,7 @@ describe("ProductsService public list", () => {
     expect(page.items.length).toBeGreaterThan(0);
     for (const item of page.items) {
       expect(item).not.toHaveProperty("minStock");
+      expect(item).not.toHaveProperty("labels");
     }
   });
 });

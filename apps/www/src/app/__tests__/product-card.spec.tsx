@@ -16,6 +16,7 @@ const product: Product = {
   weight: "240 g/m²",
   composition: "100% Bavlna",
   imageUrl: null,
+  notice: null,
 };
 
 describe("ProductCard", () => {
